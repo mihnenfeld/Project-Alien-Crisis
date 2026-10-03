@@ -3,32 +3,32 @@
 2D story-driven sci-fi RPG with base building, raids, companions and consequential decisions.
 
 ## Current prototype
-**v0.3 development — Walkable Raid**
+**v0.4 development — Interaction System**
 
 - Base → Raid → Choice → Consequence → Base
-- Persistent in-session world state
+- Walkable Raid 01
+- Reusable Area2D interaction component
+- Context-sensitive E prompts
 - First companion outcome: Nyra
-- Walkable Raid 01 with two physical routes
-- Left route: rescue signal / Nyra
-- Right route: alien signal / artifact
+- Persistent in-session world state
 
 ## Controls
 - WASD / Arrow keys: movement
-- E: interact at an encounter point
+- E: interact with the currently focused object
 
-## Test flow for v0.3
+## v0.4 test flow
 1. Start the project.
-2. In the base, choose **STORY-RAID STARTEN**.
-3. Walk left or right through the raid map.
-4. Enter the highlighted encounter zone.
-5. Press **E**.
-6. Return to base and verify that the consequence persists.
-7. Reset the demo and test the other route.
+2. Enter Raid 01.
+3. Walk near the rescue or artifact objective.
+4. Verify the prompt appears only in range.
+5. Walk away and verify the exploration prompt returns.
+6. Re-enter and press E.
+7. Return to base and verify the same outcome logic as v0.3.
 
 ## Project structure
 - `autoload/` global game state
 - `scenes/` Godot scenes
-- `scripts/` gameplay logic
+- `scripts/` gameplay logic and reusable components
 - `docs/` design and roadmap
 - `assets/` art/audio/shaders as production starts
 

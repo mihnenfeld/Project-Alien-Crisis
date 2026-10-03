@@ -8,26 +8,30 @@
 - Persistent world state during session
 
 ## v0.3 — Walkable Raid
-Goal: replace menu-only raid choices with spatial gameplay.
+Completed:
+- Walkable raid map
+- Two physically distinct routes
+- Movement-driven route choice
+- Persistent route outcome in base
+
+## v0.4 — Interaction System
+Goal: replace raid-specific interaction-zone code with a reusable interaction component.
 
 Implemented in this branch:
-- Player enters a walkable raid map
-- Two visually and physically distinct routes
-- Route choice is made by movement, not a route-selection menu
-- Left endpoint represents the rescue signal
-- Right endpoint represents the alien artifact
-- E resolves the encountered objective
-- Outcome persists when returning to base
+- Generic `interactable.gd` Area2D component
+- Exported prompt text and action ID
+- Shared E-key interaction flow
+- Raid objectives use the same reusable component
+- Gameplay scene handles actions separately from proximity detection
 
-Test criteria:
-- Player can reach both endpoints
-- E only resolves an objective while inside its encounter zone
-- Nyra route gives 0 Alien-Tech
-- Artifact route gives +3 Alien-Tech and +20 resources
-- Base reflects the selected outcome after return
+Acceptance criteria:
+- Entering an interactable shows its prompt
+- Leaving it restores exploration text
+- E only works while an interactable is focused
+- Rescue and artifact outcomes remain unchanged
+- No route-specific body-entered/body-exited wiring remains in `raid.gd`
 
 ## Later milestones
-- v0.4 General interaction system
 - v0.5 Basic combat
 - v0.6 Companion behavior
 - v0.7 Save/load

@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" path="res://scripts/raid.gd" id="1"]
 [ext_resource type="PackedScene" path="res://scenes/player.tscn" id="2"]
+[ext_resource type="Script" path="res://scripts/interactable.gd" id="3"]
 
 [sub_resource type="RectangleShape2D" id="RouteWall"]
 size = Vector2(80, 330)
@@ -75,14 +76,20 @@ color = Color(0.35, 0.95, 0.75, 0.85)
 polygon = PackedVector2Array(950, 155, 990, 105, 1030, 155, 990, 205)
 color = Color(0.75, 0.35, 1, 0.9)
 
-[node name="RescueZone" type="Area2D" parent="."]
+[node name="RescueZone" type="Area2D" parent="." groups=["interactable"]]
 position = Vector2(290, 205)
+script = ExtResource("3")
+prompt_text = "Nyra lebt noch. Drücke E, um sie zu retten."
+action_id = "rescue_nyra"
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="RescueZone"]
 shape = SubResource("RescueShape")
 
-[node name="ArtifactZone" type="Area2D" parent="."]
+[node name="ArtifactZone" type="Area2D" parent="." groups=["interactable"]]
 position = Vector2(990, 205)
+script = ExtResource("3")
+prompt_text = "Das Artefakt ist instabil. Drücke E, um es zu sichern."
+action_id = "secure_artifact"
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="ArtifactZone"]
 shape = SubResource("ArtifactShape")
