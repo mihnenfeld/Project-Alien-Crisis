@@ -5,44 +5,47 @@ extends Node2D
 @onready var result_panel: PanelContainer = $CanvasLayer/ResultPanel
 @onready var result_text: Label = $CanvasLayer/ResultPanel/Margin/VBox/ResultText
 @onready var return_button: Button = $CanvasLayer/ResultPanel/Margin/VBox/ReturnButton
-@onready var rescue_zone: Area2D = $RescueZone
-@onready var artifact_zone: Area2D = $ArtifactZone
 
-var nearby_route: String = ""
+var current_interactable: Area2D = null
 var resolved := false
 
 func _ready() -> void:
-    rescue_zone.body_entered.connect(func(body): _on_zone_entered(body, "rescue"))
-    rescue_zone.body_exited.connect(func(body): _on_zone_exited(body, "rescue"))
-    artifact_zone.body_entered.connect(func(body): _on_zone_entered(body, "artifact"))
-    artifact_zone.body_exited.connect(func(body): _on_zone_exited(body, "artifact"))
+    for interactable in get_tree().get_nodes_in_group("interactable"):
+        interactable.focus_requested.connect(_on_focus_requested)
+        interactable.focus_released.connect(_on_focus_released)
+        interactable.interaction_requested.connect(_on_interaction_requested)
+
     return_button.pressed.connect(_return_to_base)
-    prompt_label.text = "Erkunde den Raid. Links: Rettungssignal. Rechts: Alien-Signal."
+    _set_exploration_prompt()
 
 func _process(_delta: float) -> void:
     if resolved:
         return
-    if nearby_route != "" and Input.is_action_just_pressed("interact"):
-        if nearby_route == "rescue":
+    if current_interactable != null and Input.is_action_just_pressed("interact"):
+        current_interactable.interact()
+
+func _on_focus_requested(interactable: Area2D) -> void:
+    if resolved:
+        return
+    current_interactable = interactable
+    prompt_label.text = interactable.prompt_text
+
+func _on_focus_released(interactable: Area2D) -> void:
+    if current_interactable == interactable:
+        current_interactable = null
+        _set_exploration_prompt()
+
+func _on_interaction_requested(action_id: String) -> void:
+    match action_id:
+        "rescue_nyra":
             _rescue_nyra()
-        elif nearby_route == "artifact":
+        "secure_artifact":
             _take_artifact()
+        _:
+            push_warning("Unknown interaction action: " + action_id)
 
-func _on_zone_entered(body: Node, route_name: String) -> void:
-    if body != player or resolved:
-        return
-    nearby_route = route_name
-    if route_name == "rescue":
-        prompt_label.text = "Nyra lebt noch. Drücke E, um sie zu retten."
-    else:
-        prompt_label.text = "Das Artefakt ist instabil. Drücke E, um es zu sichern."
-
-func _on_zone_exited(body: Node, route_name: String) -> void:
-    if body != player or resolved:
-        return
-    if nearby_route == route_name:
-        nearby_route = ""
-        prompt_label.text = "Erkunde den Raid. Links: Rettungssignal. Rechts: Alien-Signal."
+func _set_exploration_prompt() -> void:
+    prompt_label.text = "Erkunde den Raid. Links: Rettungssignal. Rechts: Alien-Signal."
 
 func _rescue_nyra() -> void:
     resolved = true
@@ -65,7 +68,7 @@ func _take_artifact() -> void:
     _show_result(GameState.last_raid_summary)
 
 func _show_result(text: String) -> void:
-    nearby_route = ""
+    current_interactable = null
     prompt_label.visible = false
     player.set_physics_process(false)
     result_text.text = text
