@@ -1,37 +1,51 @@
 extends Node2D
 
-@onready var intro_panel: PanelContainer = $CanvasLayer/IntroPanel
-@onready var choice_panel: PanelContainer = $CanvasLayer/ChoicePanel
+@onready var player: CharacterBody2D = $Player
+@onready var prompt_label: Label = $CanvasLayer/Prompt
 @onready var result_panel: PanelContainer = $CanvasLayer/ResultPanel
 @onready var result_text: Label = $CanvasLayer/ResultPanel/Margin/VBox/ResultText
-
-@onready var route_a_button: Button = $CanvasLayer/IntroPanel/Margin/VBox/RouteA
-@onready var route_b_button: Button = $CanvasLayer/IntroPanel/Margin/VBox/RouteB
-@onready var rescue_button: Button = $CanvasLayer/ChoicePanel/Margin/VBox/Rescue
-@onready var artifact_button: Button = $CanvasLayer/ChoicePanel/Margin/VBox/Artifact
 @onready var return_button: Button = $CanvasLayer/ResultPanel/Margin/VBox/ReturnButton
+@onready var rescue_zone: Area2D = $RescueZone
+@onready var artifact_zone: Area2D = $ArtifactZone
 
-var route: String = ""
+var nearby_route: String = ""
+var resolved := false
 
 func _ready() -> void:
-    route_a_button.pressed.connect(func(): _select_route("rescue"))
-    route_b_button.pressed.connect(func(): _select_route("artifact"))
-    rescue_button.pressed.connect(_rescue_nyra)
-    artifact_button.pressed.connect(_take_artifact)
+    rescue_zone.body_entered.connect(func(body): _on_zone_entered(body, "rescue"))
+    rescue_zone.body_exited.connect(func(body): _on_zone_exited(body, "rescue"))
+    artifact_zone.body_entered.connect(func(body): _on_zone_entered(body, "artifact"))
+    artifact_zone.body_exited.connect(func(body): _on_zone_exited(body, "artifact"))
     return_button.pressed.connect(_return_to_base)
+    prompt_label.text = "Erkunde den Raid. Links: Rettungssignal. Rechts: Alien-Signal."
 
-func _select_route(selected: String) -> void:
-    route = selected
-    intro_panel.visible = false
-    choice_panel.visible = true
+func _process(_delta: float) -> void:
+    if resolved:
+        return
+    if nearby_route != "" and Input.is_action_just_pressed("interact"):
+        if nearby_route == "rescue":
+            _rescue_nyra()
+        elif nearby_route == "artifact":
+            _take_artifact()
 
-    var text_node: Label = $CanvasLayer/ChoicePanel/Margin/VBox/ChoiceText
-    if route == "rescue":
-        text_node.text = "Die Rettungsroute führt zu einem beschädigten Außenposten. Nyra lebt noch, aber ein Alien-Artefakt wird instabil."
+func _on_zone_entered(body: Node, route_name: String) -> void:
+    if body != player or resolved:
+        return
+    nearby_route = route_name
+    if route_name == "rescue":
+        prompt_label.text = "Nyra lebt noch. Drücke E, um sie zu retten."
     else:
-        text_node.text = "Die Artefaktroute führt direkt zur Quelle des Signals. Du kannst die Technologie bergen, aber Nyra wird abgeschnitten."
+        prompt_label.text = "Das Artefakt ist instabil. Drücke E, um es zu sichern."
+
+func _on_zone_exited(body: Node, route_name: String) -> void:
+    if body != player or resolved:
+        return
+    if nearby_route == route_name:
+        nearby_route = ""
+        prompt_label.text = "Erkunde den Raid. Links: Rettungssignal. Rechts: Alien-Signal."
 
 func _rescue_nyra() -> void:
+    resolved = true
     GameState.add_companion("Nyra")
     GameState.set_flag("nyra_rescued")
     GameState.set_flag("raid_1_complete")
@@ -40,6 +54,7 @@ func _rescue_nyra() -> void:
     _show_result(GameState.last_raid_summary)
 
 func _take_artifact() -> void:
+    resolved = true
     GameState.set_flag("nyra_dead")
     GameState.set_flag("artifact_secured")
     GameState.set_flag("raid_1_complete")
@@ -50,9 +65,11 @@ func _take_artifact() -> void:
     _show_result(GameState.last_raid_summary)
 
 func _show_result(text: String) -> void:
-    choice_panel.visible = false
-    result_panel.visible = true
+    nearby_route = ""
+    prompt_label.visible = false
+    player.set_physics_process(false)
     result_text.text = text
+    result_panel.visible = true
 
 func _return_to_base() -> void:
     get_tree().change_scene_to_file("res://scenes/base.tscn")
