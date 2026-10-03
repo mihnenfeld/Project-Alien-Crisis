@@ -1,6 +1,22 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=8 format=3]
 
 [ext_resource type="Script" path="res://scripts/raid.gd" id="1"]
+[ext_resource type="PackedScene" path="res://scenes/player.tscn" id="2"]
+
+[sub_resource type="RectangleShape2D" id="RouteWall"]
+size = Vector2(80, 330)
+
+[sub_resource type="RectangleShape2D" id="TopWall"]
+size = Vector2(1180, 30)
+
+[sub_resource type="RectangleShape2D" id="SideWall"]
+size = Vector2(30, 560)
+
+[sub_resource type="RectangleShape2D" id="RescueShape"]
+size = Vector2(180, 120)
+
+[sub_resource type="RectangleShape2D" id="ArtifactShape"]
+size = Vector2(180, 120)
 
 [node name="Raid" type="Node2D"]
 script = ExtResource("1")
@@ -8,92 +24,111 @@ script = ExtResource("1")
 [node name="Background" type="ColorRect" parent="."]
 offset_right = 1280.0
 offset_bottom = 720.0
-color = Color(0.055, 0.035, 0.06, 1)
+color = Color(0.035, 0.025, 0.055, 1)
+mouse_filter = 2
 
-[node name="Ruins" type="Polygon2D" parent="."]
-polygon = PackedVector2Array(100, 560, 260, 250, 400, 480, 560, 180, 760, 520, 930, 230, 1180, 560)
-color = Color(0.15, 0.11, 0.18, 1)
+[node name="Floor" type="Polygon2D" parent="."]
+polygon = PackedVector2Array(50, 100, 1230, 100, 1230, 660, 50, 660)
+color = Color(0.09, 0.075, 0.12, 1)
 
-[node name="Signal" type="Polygon2D" parent="."]
-polygon = PackedVector2Array(600, 165, 640, 95, 680, 165, 640, 235)
-color = Color(0.4, 1, 0.9, 0.75)
+[node name="LeftPath" type="Polygon2D" parent="."]
+polygon = PackedVector2Array(130, 180, 500, 180, 500, 610, 130, 610)
+color = Color(0.12, 0.17, 0.19, 1)
+
+[node name="RightPath" type="Polygon2D" parent="."]
+polygon = PackedVector2Array(780, 180, 1150, 180, 1150, 610, 780, 610)
+color = Color(0.17, 0.11, 0.18, 1)
+
+[node name="Fork" type="Polygon2D" parent="."]
+polygon = PackedVector2Array(500, 500, 780, 500, 780, 650, 500, 650)
+color = Color(0.13, 0.12, 0.16, 1)
+
+[node name="Divider" type="StaticBody2D" parent="."]
+position = Vector2(640, 330)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Divider"]
+shape = SubResource("RouteWall")
+
+[node name="TopBoundary" type="StaticBody2D" parent="."]
+position = Vector2(640, 95)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="TopBoundary"]
+shape = SubResource("TopWall")
+
+[node name="LeftBoundary" type="StaticBody2D" parent="."]
+position = Vector2(45, 380)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="LeftBoundary"]
+shape = SubResource("SideWall")
+
+[node name="RightBoundary" type="StaticBody2D" parent="."]
+position = Vector2(1235, 380)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="RightBoundary"]
+shape = SubResource("SideWall")
+
+[node name="RescueBeacon" type="Polygon2D" parent="."]
+polygon = PackedVector2Array(250, 150, 290, 110, 330, 150, 290, 190)
+color = Color(0.35, 0.95, 0.75, 0.85)
+
+[node name="Artifact" type="Polygon2D" parent="."]
+polygon = PackedVector2Array(950, 155, 990, 105, 1030, 155, 990, 205)
+color = Color(0.75, 0.35, 1, 0.9)
+
+[node name="RescueZone" type="Area2D" parent="."]
+position = Vector2(290, 205)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="RescueZone"]
+shape = SubResource("RescueShape")
+
+[node name="ArtifactZone" type="Area2D" parent="."]
+position = Vector2(990, 205)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="ArtifactZone"]
+shape = SubResource("ArtifactShape")
+
+[node name="Player" parent="." instance=ExtResource("2")]
+position = Vector2(640, 600)
 
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
 
 [node name="Title" type="Label" parent="CanvasLayer"]
-offset_left = 36.0
-offset_top = 24.0
-offset_right = 620.0
-offset_bottom = 58.0
+offset_left = 32.0
+offset_top = 20.0
+offset_right = 600.0
+offset_bottom = 52.0
 text = "RAID 01 — DAS SIGNAL"
 theme_override_font_sizes/font_size = 24
 
-[node name="IntroPanel" type="PanelContainer" parent="CanvasLayer"]
-offset_left = 280.0
-offset_top = 150.0
-offset_right = 1000.0
-offset_bottom = 520.0
+[node name="RouteHintLeft" type="Label" parent="CanvasLayer"]
+offset_left = 170.0
+offset_top = 120.0
+offset_right = 430.0
+offset_bottom = 150.0
+text = "RETTUNGSSIGNAL"
 
-[node name="Margin" type="MarginContainer" parent="CanvasLayer/IntroPanel"]
-layout_mode = 2
-theme_override_constants/margin_left = 24
-theme_override_constants/margin_top = 24
-theme_override_constants/margin_right = 24
-theme_override_constants/margin_bottom = 24
+[node name="RouteHintRight" type="Label" parent="CanvasLayer"]
+offset_left = 885.0
+offset_top = 120.0
+offset_right = 1110.0
+offset_bottom = 150.0
+text = "ALIEN-SIGNAL"
 
-[node name="VBox" type="VBoxContainer" parent="CanvasLayer/IntroPanel/Margin"]
-layout_mode = 2
-theme_override_constants/separation = 18
-
-[node name="IntroText" type="Label" parent="CanvasLayer/IntroPanel/Margin/VBox"]
-layout_mode = 2
-text = "Ein unbekanntes Signal führt zu einem zerstörten Außenposten. Zwei Wege liegen vor dir."
-autowrap_mode = 2
-
-[node name="RouteA" type="Button" parent="CanvasLayer/IntroPanel/Margin/VBox"]
-layout_mode = 2
-text = "ROUTE A — AUẞENPOSTEN / RETTUNGSSIGNAL"
-
-[node name="RouteB" type="Button" parent="CanvasLayer/IntroPanel/Margin/VBox"]
-layout_mode = 2
-text = "ROUTE B — ALIEN-SIGNAL / ARTEFAKT"
-
-[node name="ChoicePanel" type="PanelContainer" parent="CanvasLayer"]
-visible = false
-offset_left = 280.0
-offset_top = 150.0
-offset_right = 1000.0
-offset_bottom = 520.0
-
-[node name="Margin" type="MarginContainer" parent="CanvasLayer/ChoicePanel"]
-layout_mode = 2
-theme_override_constants/margin_left = 24
-theme_override_constants/margin_top = 24
-theme_override_constants/margin_right = 24
-theme_override_constants/margin_bottom = 24
-
-[node name="VBox" type="VBoxContainer" parent="CanvasLayer/ChoicePanel/Margin"]
-layout_mode = 2
-theme_override_constants/separation = 18
-
-[node name="ChoiceText" type="Label" parent="CanvasLayer/ChoicePanel/Margin/VBox"]
-layout_mode = 2
-autowrap_mode = 2
-
-[node name="Rescue" type="Button" parent="CanvasLayer/ChoicePanel/Margin/VBox"]
-layout_mode = 2
-text = "NYRA RETTEN"
-
-[node name="Artifact" type="Button" parent="CanvasLayer/ChoicePanel/Margin/VBox"]
-layout_mode = 2
-text = "ARTEFAKT SICHERN"
+[node name="Prompt" type="Label" parent="CanvasLayer"]
+offset_left = 300.0
+offset_top = 665.0
+offset_right = 980.0
+offset_bottom = 700.0
+text = "Erkunde den Raid."
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 18
 
 [node name="ResultPanel" type="PanelContainer" parent="CanvasLayer"]
 visible = false
-offset_left = 280.0
-offset_top = 150.0
-offset_right = 1000.0
-offset_bottom = 520.0
+offset_left = 300.0
+offset_top = 200.0
+offset_right = 980.0
+offset_bottom = 480.0
 
 [node name="Margin" type="MarginContainer" parent="CanvasLayer/ResultPanel"]
 layout_mode = 2
