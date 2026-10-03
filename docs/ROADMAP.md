@@ -10,15 +10,24 @@
 ## v0.3 — Walkable Raid
 Goal: replace menu-only raid choices with spatial gameplay.
 
-Acceptance criteria:
+Implemented in this branch:
 - Player enters a walkable raid map
-- Two physically different routes exist
-- Route choice is made by movement/exploration, not a menu
-- Each route reaches a different encounter point
+- Two visually and physically distinct routes
+- Route choice is made by movement, not a route-selection menu
+- Left endpoint represents the rescue signal
+- Right endpoint represents the alien artifact
+- E resolves the encountered objective
 - Outcome persists when returning to base
 
+Test criteria:
+- Player can reach both endpoints
+- E only resolves an objective while inside its encounter zone
+- Nyra route gives 0 Alien-Tech
+- Artifact route gives +3 Alien-Tech and +20 resources
+- Base reflects the selected outcome after return
+
 ## Later milestones
-- v0.4 Interaction system
+- v0.4 General interaction system
 - v0.5 Basic combat
 - v0.6 Companion behavior
 - v0.7 Save/load
