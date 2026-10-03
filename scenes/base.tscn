@@ -38,7 +38,7 @@ offset_left = 36.0
 offset_top = 62.0
 offset_right = 720.0
 offset_bottom = 90.0
-text = "Vertical Slice 0.2.1 — Base → Raid → Konsequenz → Rückkehr"
+text = "Vertical Slice 0.4 — Interaction System"
 
 [node name="UI" type="Control" parent="CanvasLayer"]
 layout_mode = 3
