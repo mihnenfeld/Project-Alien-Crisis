@@ -98,7 +98,8 @@ func _can_stand(global_point: Vector2, radius: float=0.19) -> bool:
 
 func _process(delta: float) -> void:
     clock += delta
-    _update_camera(false)
+    if not baking:
+        _update_camera(false)
 
 func _update_camera(force: bool) -> void:
     if actor == null or camera == null:
@@ -160,33 +161,30 @@ func _bake_camera_views() -> void:
     if baking:
         return
     baking = true
-    var original_visibility := actor.visible
+    var ui: CanvasLayer = heading.get_parent() as CanvasLayer
+    var original_pose := camera.global_transform
     actor.visible = false
-    var capture := SubViewport.new()
-    capture.name = "PreRenderCapture"
-    capture.size = Vector2i(1280,720)
-    capture.own_world_3d = false
-    capture.world_3d = get_viewport().world_3d
-    capture.render_target_update_mode = SubViewport.UPDATE_ALWAYS
-    add_child(capture)
-    var camera_capture := Camera3D.new()
-    camera_capture.fov = camera.fov
-    capture.add_child(camera_capture)
-    camera_capture.current = true
-    await get_tree().process_frame
+    ui.visible = false
+    backdrop.visible = false
+    for room_node in rooms:
+        room_node.visible = true
+    # Capture the actual game viewport. This is the same working camera/world
+    # the player sees, avoiding a secondary viewport with an empty world.
     for slot in range(3):
-        camera_capture.global_transform = _camera_pose(slot)
+        camera.global_transform = _camera_pose(slot)
+        await get_tree().process_frame
         await RenderingServer.frame_post_draw
         await RenderingServer.frame_post_draw
-        var image := capture.get_texture().get_image()
-        if image != null and not image.is_empty() and _has_rendered_content(image):
-            baked_views[slot] = ImageTexture.create_from_image(image)
+        var snapshot := get_viewport().get_texture().get_image()
+        if snapshot != null and not snapshot.is_empty() and _has_rendered_content(snapshot):
+            baked_views[slot] = ImageTexture.create_from_image(snapshot)
         else:
-            push_warning("Kamera %d: Capture leer oder schwarz, F6 bleibt deaktiviert." % (slot + 1))
-    capture.queue_free()
-    actor.visible = original_visibility
+            push_warning("Kamera %d: Hauptviewport-Capture leer." % (slot + 1))
+    camera.global_transform = original_pose
+    actor.visible = true
+    ui.visible = true
     baking = false
-    view_label.text = "F6: RENDERBILD EIN/AUS | %d/3 KAMERABILDER GEBACKEN" % baked_views.size()
+    view_label.text = "F6: RENDERBILD EIN/AUS | %d/3 KAMERABILDER" % baked_views.size()
     if render_mode:
         _show_baked_view()
 
