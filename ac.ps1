@@ -5,6 +5,9 @@ param(
 $ErrorActionPreference = 'Stop'
 $Root = Split-Path -Parent $MyInvocation.MyCommand.Path
 $Godot = 'C:\Users\Malte\Downloads\Godot_v4.7.2-stable_win64.exe'
+if (Test-Path -LiteralPath $Godot -PathType Container) {
+    $Godot = Join-Path $Godot 'Godot_v4.7.2-stable_win64.exe'
+}
 $Scene = 'res://scenes/demo_outpost.tscn'
 function Check-Godot {
     if (!(Test-Path -LiteralPath $Godot)) {
@@ -18,7 +21,11 @@ function Update-Project {
     try {
         $dirty = @(git status --porcelain)
         if ($LASTEXITCODE -ne 0) { throw 'Git-Status fehlgeschlagen.' }
-        if ($dirty.Count -gt 0) { throw 'Lokale Aenderungen vorhanden. Git-Update aus Sicherheitsgruenden abgebrochen.' }
+        if ($dirty.Count -gt 0) {
+            Write-Warning 'Lokale Aenderungen erkannt. Git-Update uebersprungen, vorhandenen Stand starten.'
+            git status --short
+            return
+        }
         git pull --ff-only
         if ($LASTEXITCODE -ne 0) { throw 'Git-Update fehlgeschlagen.' }
     }
