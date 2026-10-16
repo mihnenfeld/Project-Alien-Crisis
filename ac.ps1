@@ -1,5 +1,5 @@
 param(
-    [ValidateSet('all','play','check','update','assets','perspective','prerendered','3d')]
+    [ValidateSet('all','play','check','update','assets','perspective','prerendered','3d','render')]
     [string]$Action = 'all'
 )
 $ErrorActionPreference = 'Stop'
@@ -39,6 +39,19 @@ function Update-Project {
     }
     finally { Pop-Location }
 }
+function Install-Rendered-Art {
+    $Zip = Join-Path (Join-Path $env:USERPROFILE 'Downloads') 'Alien_Crisis_Commanddeck_10.zip'
+    $Destination = Join-Path $Root 'assets\backgrounds'
+    $Background = Join-Path $Destination 'commanddeck_render_bg.png'
+    if (!(Test-Path -LiteralPath $Background)) {
+        if (!(Test-Path -LiteralPath $Zip)) {
+            throw "Grafikpaket fehlt. Alien_Crisis_Commanddeck_10.zip nach Downloads herunterladen und erneut starten: $Zip"
+        }
+        New-Item -ItemType Directory -Force -Path $Destination | Out-Null
+        Expand-Archive -LiteralPath $Zip -DestinationPath $Destination -Force
+        Write-Host 'Render-Kulissen installiert.' -ForegroundColor Green
+    }
+}
 function Start-Demo {
     param([string]$TargetScene = $Scene)
     Check-Godot
@@ -60,5 +73,6 @@ switch ($Action) {
     'perspective' { Start-Demo -TargetScene 'res://scenes/demo_perspective.tscn' }
     'prerendered' { Start-Demo -TargetScene 'res://scenes/demo_prerendered.tscn' }
     '3d' { Start-Demo -TargetScene 'res://scenes/demo_3d.tscn' }
+    'render' { Install-Rendered-Art; Start-Demo -TargetScene 'res://scenes/demo_rendered.tscn' }
     'all' { Update-Project; Install-Assets; Start-Demo }
 }
