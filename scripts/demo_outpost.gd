@@ -13,6 +13,7 @@ var player := Vector2(220, 447)
 var facing := 0.0
 var footsteps := 0.0
 var gate_open := false
+var gate_released := false
 var generator_on := false
 var announcement := "FUNKSIGNAL: AUSSENPOSTEN A-17 // SYSTEMCHECK"
 var title_label: Label
@@ -74,14 +75,33 @@ func _unhandled_key_input(event: InputEvent) -> void:
         get_tree().quit()
     if event.keycode == KEY_E:
         if player.distance_to(gate_rect.get_center()) < 110:
-            gate_open = not gate_open
-            announcement = "SCHOTT GEÖFFNET" if gate_open else "SCHOTT GESCHLOSSEN"
+            if not generator_on:
+                announcement = "SCHOTT VERRIEGELT: NOTSTROMVERSORGUNG FEHLT."
+            elif not gate_released:
+                announcement = "SCHOTT VERRIEGELT: FREIGABE AM TERMINAL ERFORDERLICH."
+            elif gate_open:
+                gate_open = false
+                gate_released = false
+                announcement = "SCHOTT MANUELL VERRIEGELT. NEUE TERMINALFREIGABE ERFORDERLICH."
+            else:
+                gate_open = true
+                announcement = "SCHOTT GEÖFFNET."
         elif player.distance_to(console_rect.get_center()) < 110:
-            gate_open = not gate_open
-            announcement = "ZUGANG FREIGEGEBEN" if gate_open else "ZUGANG GESPERRT"
+            if not generator_on:
+                announcement = "TERMINAL OFFLINE: GENERATOR AKTIVIEREN."
+            elif gate_released:
+                gate_released = false
+                gate_open = false
+                announcement = "SICHERHEITSVERRIEGELUNG AKTIVIERT."
+            else:
+                gate_released = true
+                announcement = "SCHOTT FREIGEGEBEN. AM SCHOTT MIT E ÖFFNEN."
         elif player.distance_to(generator_rect.get_center()) < 110:
             generator_on = not generator_on
-            announcement = "GENERATOR ONLINE" if generator_on else "GENERATOR OFFLINE"
+            if not generator_on:
+                gate_open = false
+                gate_released = false
+            announcement = "GENERATOR ONLINE. SCHOTT AM TERMINAL FREIGEBEN." if generator_on else "GENERATOR OFFLINE. SCHOTT VERRIEGELT."
         else:
             announcement = "KEIN INTERAKTIVES OBJEKT IN REICHWEITE"
         _update_status()
