@@ -1,8 +1,8 @@
 extends Node2D
 ## Demo 0.8: layered authored background, independent character, navigation mask and foreground occlusion.
 const SPEED: float = 190.0
-const FLOOR_POLY := PackedVector2Array([Vector2(160,253),Vector2(850,211),Vector2(1092,557),Vector2(371,634)])
-const OBSTACLES := [
+var floor_poly: PackedVector2Array = PackedVector2Array([Vector2(160,253),Vector2(850,211),Vector2(1092,557),Vector2(371,634)])
+var obstacles: Array[PackedVector2Array] = [
     PackedVector2Array([Vector2(370,264),Vector2(560,250),Vector2(630,399),Vector2(400,415)]),
     PackedVector2Array([Vector2(737,292),Vector2(863,283),Vector2(909,421),Vector2(766,428)]),
     PackedVector2Array([Vector2(648,452),Vector2(842,439),Vector2(903,578),Vector2(677,599)])
@@ -38,9 +38,9 @@ func _label(node: Node, pos: Vector2, title: String, size: int, tint: Color) -> 
     return l
 
 func _can_walk(p: Vector2) -> bool:
-    if not Geometry2D.is_point_in_polygon(p, FLOOR_POLY):
+    if not Geometry2D.is_point_in_polygon(p, floor_poly):
         return false
-    for shape in OBSTACLES:
+    for shape in obstacles:
         if Geometry2D.is_point_in_polygon(p, shape):
             return false
     return true
