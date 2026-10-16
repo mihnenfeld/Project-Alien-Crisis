@@ -2,7 +2,7 @@ extends Node2D
 ## Demo 1.0: authored rendered command deck with 2D screen-space walk and masked foreground.
 ## This is a visual gameplay proof: the collision polygons are hand-matched approximations.
 const WALK_SPEED := 150.0
-const PLAYER_START := Vector2(730, 385)
+const PLAYER_START := Vector2(975, 475)
 var wall_floor: PackedVector2Array = PackedVector2Array([
     Vector2(130,350), Vector2(335,335), Vector2(480,315), Vector2(685,297),
     Vector2(980,292), Vector2(1225,416), Vector2(1225,631),
@@ -30,6 +30,9 @@ func _ready() -> void:
     _label(ui, Vector2(25,18), "ALIEN CRISIS  /  KOMMANDODECK  /  RENDER-DEMO 1.0", 22, Color("#e8f3f2"))
     _label(ui, Vector2(28,52), "WASD LAUFEN  |  SHIFT SPRINTEN  |  E INTERAGIEREN  |  ESC BEENDEN", 14, Color("#adc3c7"))
     status = _label(ui, Vector2(28,682), "TEST: GERENDERTE KULISSE, LAUFZONEN UND VORDERGRUNDVERDECKUNG", 14, Color("#7be3cf"))
+    if not _walkable(player):
+        push_error("Startpunkt liegt in einer gesperrten Laufzone: %s" % player)
+        status.text = "FEHLER: STARTPUNKT NICHT BEGEHBAR"
     if bg == null:
         status.text = "ASSET FEHLT: Alien_Crisis_Commanddeck_10.zip nach Downloads laden und .\\ac.ps1 render erneut starten."
 
