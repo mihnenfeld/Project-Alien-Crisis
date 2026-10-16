@@ -11,6 +11,11 @@ var camera: Camera3D
 var camera_slot := -1
 var last_change := -100.0
 var clock := 0.0
+var baked_views: Dictionary = {}
+var render_mode := false
+var backdrop: MeshInstance3D
+var baking := false
+var view_label: Label
 
 func _ready() -> void:
     var env := WorldEnvironment.new()
@@ -42,7 +47,10 @@ func _ready() -> void:
     heading = _label(ui,Vector2(26,21),"ALIEN CRISIS / VERBUNDENE RAUMWELT 2.2",24)
     _label(ui,Vector2(27,56),"WASD / SHIFT | KAMERA AUTOMATISCH | F5: KAMERATEST | ESC: ENDE",15)
     message = _label(ui,Vector2(28,682),"BEIDE RAEUME BESTEHEN DAUERHAFT. DURCHGANG RECHTS HINTEN.",15)
+    view_label = _label(ui,Vector2(27,87),"F6: RENDERBILD EIN/AUS  |  ERSTER TEST: 3D-SZENE ALS EXAKTE KULISSE",14)
     _update_camera(true)
+    _prepare_backdrop()
+    _bake_camera_views.call_deferred()
 
 func _label(root: Node,pos: Vector2,value: String,size: int) -> Label:
     var label_node := Label.new()
@@ -118,11 +126,111 @@ func _update_camera(force: bool) -> void:
             camera.look_at(Vector3(13.5,0.9,3.3),Vector3.UP)
     heading.text = "ALIEN CRISIS / %s / DEMO 2.2" % ("WARTUNGSKORRIDOR" if camera_slot == 2 else "KOMMANDODECK")
     message.text = "KAMERA %d / POSITION X %.1f Z %.1f / KEIN RESPAWN" % [camera_slot+1,actor.position.x,actor.position.z]
+    if render_mode:
+        _show_baked_view()
+
+func _prepare_backdrop() -> void:
+    backdrop = MeshInstance3D.new()
+    backdrop.name = "CameraMatchedRender"
+    var plane := QuadMesh.new()
+    plane.size = Vector2(1, 1)
+    backdrop.mesh = plane
+    backdrop.visible = false
+    add_child(backdrop)
+
+func _camera_pose(slot: int) -> Transform3D:
+    var p := Vector3(11.3,7.7,11.5)
+    var target := Vector3(4.5,0.9,3.3)
+    match slot:
+        1:
+            p = Vector3(0.6,6.7,10.6)
+            target = Vector3(4.5,0.9,3.5)
+        2:
+            p = Vector3(22.8,8.8,12.4)
+            target = Vector3(13.5,0.9,3.3)
+    var c := Camera3D.new()
+    add_child(c)
+    c.position = p
+    c.look_at(target,Vector3.UP)
+    var result := c.global_transform
+    c.queue_free()
+    return result
+
+func _bake_camera_views() -> void:
+    if baking:
+        return
+    baking = true
+    var original_visibility := actor.visible
+    actor.visible = false
+    var capture := SubViewport.new()
+    capture.name = "PreRenderCapture"
+    capture.size = Vector2i(1280,720)
+    capture.own_world_3d = false
+    capture.world_3d = get_viewport().world_3d
+    capture.render_target_update_mode = SubViewport.UPDATE_ALWAYS
+    add_child(capture)
+    var camera_capture := Camera3D.new()
+    camera_capture.fov = camera.fov
+    capture.add_child(camera_capture)
+    await get_tree().process_frame
+    for slot in range(3):
+        camera_capture.global_transform = _camera_pose(slot)
+        await RenderingServer.frame_post_draw
+        await RenderingServer.frame_post_draw
+        var image := capture.get_texture().get_image()
+        if image != null and not image.is_empty():
+            baked_views[slot] = ImageTexture.create_from_image(image)
+    capture.queue_free()
+    actor.visible = original_visibility
+    baking = false
+    view_label.text = "F6: RENDERBILD EIN/AUS | %d/3 KAMERABILDER GEBACKEN" % baked_views.size()
+    if render_mode:
+        _show_baked_view()
+
+func _show_baked_view() -> void:
+    if backdrop == null or not baked_views.has(camera_slot):
+        return
+    var tex: Texture2D = baked_views[camera_slot]
+    var mat := StandardMaterial3D.new()
+    mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+    mat.albedo_texture = tex
+    mat.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR
+    mat.cull_mode = BaseMaterial3D.CULL_DISABLED
+    backdrop.material_override = mat
+    var depth := 35.0
+    var height := 2.0 * depth * tan(deg_to_rad(camera.fov) * 0.5)
+    var aspect := 1280.0 / 720.0
+    var quad: QuadMesh = backdrop.mesh
+    quad.size = Vector2(height * aspect,height)
+    backdrop.global_transform = camera.global_transform.translated_local(Vector3(0,0,-depth))
+    backdrop.visible = true
+
+func _toggle_render() -> void:
+    if baking:
+        view_label.text = "RENDER WIRD NOCH ERZEUGT ..."
+        return
+    render_mode = not render_mode
+    for room_node in rooms:
+        room_node.visible = not render_mode
+    if render_mode:
+        if baked_views.has(camera_slot):
+            _show_baked_view()
+        else:
+            render_mode = false
+            for room_node in rooms:
+                room_node.visible = true
+            view_label.text = "KEIN RENDERBILD VORHANDEN"
+    else:
+        backdrop.visible = false
+    if baked_views.size() > 0:
+        view_label.text = "F6: %s | %d/3 KAMERABILDER | FIGUR LIVE" % ["3D", "PRERENDER"][int(render_mode), baked_views.size()]
 
 func _unhandled_key_input(event: InputEvent) -> void:
     if not event is InputEventKey or not event.pressed or event.echo:
         return
     if event.keycode == KEY_ESCAPE:
         get_tree().quit()
+    elif event.keycode == KEY_F6:
+        _toggle_render()
     elif event.keycode == KEY_F5:
         message.text = "F5: RAUM WECHSELT NICHT MEHR. LAUFE DURCH DIE OEFFNUNG BEI X=9, Z=5."
