@@ -45,7 +45,7 @@ func _ready() -> void:
     var ui := CanvasLayer.new()
     add_child(ui)
     heading = _label(ui,Vector2(26,21),"ALIEN CRISIS / VERBUNDENE RAUMWELT 2.2",24)
-    _label(ui,Vector2(27,56),"WASD / SHIFT | KAMERA AUTOMATISCH | F5: KAMERATEST | ESC: ENDE",15)
+    _label(ui,Vector2(27,56),"WASD / SHIFT | KAMERA AUTOMATISCH | F6: RENDER/3D | ESC: ENDE",15)
     message = _label(ui,Vector2(28,682),"BEIDE RAEUME BESTEHEN DAUERHAFT. DURCHGANG RECHTS HINTEN.",15)
     view_label = _label(ui,Vector2(27,87),"F6: RENDERBILD EIN/AUS  |  ERSTER TEST: 3D-SZENE ALS EXAKTE KULISSE",14)
     _update_camera(true)
@@ -223,7 +223,7 @@ func _toggle_render() -> void:
     else:
         backdrop.visible = false
     if baked_views.size() > 0:
-        view_label.text = "F6: %s | %d/3 KAMERABILDER | FIGUR LIVE" % ["3D", "PRERENDER"][int(render_mode), baked_views.size()]
+        view_label.text = "F6: %s | %d/3 KAMERABILDER | FIGUR LIVE" % [("PRERENDER" if render_mode else "3D"), baked_views.size()]
 
 func _unhandled_key_input(event: InputEvent) -> void:
     if not event is InputEventKey or not event.pressed or event.echo:
