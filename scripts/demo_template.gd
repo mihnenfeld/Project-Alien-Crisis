@@ -211,8 +211,36 @@ func _bake_camera_views() -> void:
     baking = false
     view_label.text = "F6: RENDERBILD EIN/AUS | %d/3 KAMERABILDER" % baked_views.size()
     _update_preview()
+    _save_camera_manifest()
     if render_mode:
         _show_baked_view()
+
+func _save_camera_manifest() -> void:
+    DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(EXPORT_DIR))
+    var views: Array[Dictionary] = []
+    for slot in range(3):
+        var pose := _camera_pose(slot)
+        var pos := pose.origin
+        var basis := pose.basis
+        views.append({
+            "index": slot + 1,
+            "image": "camera_%02d_bg.png" % (slot + 1),
+            "position": [pos.x, pos.y, pos.z],
+            "basis_x": [basis.x.x, basis.x.y, basis.x.z],
+            "basis_y": [basis.y.x, basis.y.y, basis.y.z],
+            "basis_z": [basis.z.x, basis.z.y, basis.z.z],
+            "fov_degrees": camera.fov
+        })
+    var manifest := {
+        "room": "commanddeck",
+        "resolution": [1280, 720],
+        "note": "Backgrounds captured without live character from matching Godot cameras. Do not alter geometry when styling.",
+        "views": views
+    }
+    var file := FileAccess.open(EXPORT_DIR + "cameras.json", FileAccess.WRITE)
+    if file != null:
+        file.store_string(JSON.stringify(manifest, "  "))
+        file.close()
 
 func _save_export(img: Image, slot: int) -> void:
     DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(EXPORT_DIR))
