@@ -68,6 +68,20 @@ function Install-Walkmask {
         Write-Host 'Walkmask v1.2 installiert (vorherige Maske ersetzt).' -ForegroundColor Green
     }
 }
+function Install-Soldier {
+    $Zip = Join-Path (Join-Path $env:USERPROFILE 'Downloads') 'Alien_Crisis_Soldier_Run_10.zip'
+    $Destination = Join-Path $Root 'assets\characters\soldier'
+    $Sentinel = Join-Path $Destination 'front_00.png'
+    if (!(Test-Path -LiteralPath $Sentinel)) {
+        if (!(Test-Path -LiteralPath $Zip)) {
+            throw "Charakterpaket fehlt: Alien_Crisis_Soldier_Run_10.zip in Downloads speichern: $Zip"
+        }
+        New-Item -ItemType Directory -Force -Path $Destination | Out-Null
+        Expand-Archive -LiteralPath $Zip -DestinationPath $Destination -Force
+        if (!(Test-Path -LiteralPath $Sentinel)) { throw 'Charakter-Frames fehlen nach Entpacken.' }
+        Write-Host 'Soldat mit Laufanimation installiert.' -ForegroundColor Green
+    }
+}
 function Start-Demo {
     param([string]$TargetScene = $Scene)
     Check-Godot
@@ -89,6 +103,6 @@ switch ($Action) {
     'perspective' { Start-Demo -TargetScene 'res://scenes/demo_perspective.tscn' }
     'prerendered' { Start-Demo -TargetScene 'res://scenes/demo_prerendered.tscn' }
     '3d' { Start-Demo -TargetScene 'res://scenes/demo_3d.tscn' }
-    'render' { Install-Rendered-Art; Install-Walkmask; Start-Demo -TargetScene 'res://scenes/demo_rendered.tscn' }
+    'render' { Install-Rendered-Art; Install-Walkmask; Install-Soldier; Start-Demo -TargetScene 'res://scenes/demo_rendered.tscn' }
     'all' { Update-Project; Install-Assets; Start-Demo }
 }
