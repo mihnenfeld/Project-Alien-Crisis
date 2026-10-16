@@ -1,5 +1,5 @@
 param(
-    [ValidateSet('all','play','check','update','assets')]
+    [ValidateSet('all','play','check','update','assets','perspective')]
     [string]$Action = 'all'
 )
 $ErrorActionPreference = 'Stop'
@@ -40,11 +40,12 @@ function Update-Project {
     finally { Pop-Location }
 }
 function Start-Demo {
+    param([string]$TargetScene = $Scene)
     Check-Godot
     if (!(Test-Path (Join-Path $Root 'scenes\demo_base_hub.tscn'))) {
         throw 'Demo-Szene fehlt.'
     }
-    & $Godot --path $Root $Scene
+    & $Godot --path $Root $TargetScene
     if ($LASTEXITCODE -ne 0) { throw "Godot beendete sich mit Fehlercode $LASTEXITCODE." }
 }
 function Install-Assets {
@@ -55,5 +56,6 @@ switch ($Action) {
     'update' { Update-Project }
     'assets' { Install-Assets }
     'play' { Start-Demo }
+    'perspective' { Start-Demo -TargetScene 'res://scenes/demo_perspective.tscn' }
     'all' { Update-Project; Install-Assets; Start-Demo }
 }
