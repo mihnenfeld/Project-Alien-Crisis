@@ -16,6 +16,8 @@ var render_mode := false
 var backdrop: MeshInstance3D
 var baking := false
 var view_label: Label
+var capture_preview: TextureRect
+var preview_visible := false
 
 func _ready() -> void:
     var env := WorldEnvironment.new()
@@ -45,9 +47,16 @@ func _ready() -> void:
     var ui := CanvasLayer.new()
     add_child(ui)
     heading = _label(ui,Vector2(26,21),"ALIEN CRISIS / VERBUNDENE RAUMWELT 2.2",24)
-    _label(ui,Vector2(27,56),"WASD / SHIFT | KAMERA AUTOMATISCH | F6: RENDER/3D | ESC: ENDE",15)
+    _label(ui,Vector2(27,56),"WASD / SHIFT | KAMERA AUTOMATISCH | F6: RENDER/3D | F7: BILDVORSCHAU | ESC: ENDE",15)
     message = _label(ui,Vector2(28,682),"BEIDE RAEUME BESTEHEN DAUERHAFT. DURCHGANG RECHTS HINTEN.",15)
     view_label = _label(ui,Vector2(27,87),"F6: RENDERBILD EIN/AUS  |  ERSTER TEST: 3D-SZENE ALS EXAKTE KULISSE",14)
+    capture_preview = TextureRect.new()
+    capture_preview.position = Vector2(850, 96)
+    capture_preview.size = Vector2(405, 228)
+    capture_preview.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+    capture_preview.stretch_mode = TextureRect.STRETCH_SCALE
+    capture_preview.visible = false
+    ui.add_child(capture_preview)
     _update_camera(true)
     _prepare_backdrop()
     _bake_camera_views.call_deferred()
@@ -129,6 +138,7 @@ func _update_camera(force: bool) -> void:
     message.text = "KAMERA %d / POSITION X %.1f Z %.1f / KEIN RESPAWN" % [camera_slot+1,actor.position.x,actor.position.z]
     if render_mode:
         _show_baked_view()
+    _update_preview()
 
 func _prepare_backdrop() -> void:
     backdrop = MeshInstance3D.new()
@@ -185,8 +195,15 @@ func _bake_camera_views() -> void:
     ui.visible = true
     baking = false
     view_label.text = "F6: RENDERBILD EIN/AUS | %d/3 KAMERABILDER" % baked_views.size()
+    _update_preview()
     if render_mode:
         _show_baked_view()
+
+func _update_preview() -> void:
+    if capture_preview == null:
+        return
+    capture_preview.texture = baked_views.get(camera_slot, null)
+    capture_preview.visible = preview_visible and capture_preview.texture != null
 
 func _has_rendered_content(image: Image) -> bool:
     var different := 0
@@ -246,5 +263,9 @@ func _unhandled_key_input(event: InputEvent) -> void:
         get_tree().quit()
     elif event.keycode == KEY_F6:
         _toggle_render()
+    elif event.keycode == KEY_F7:
+        preview_visible = not preview_visible
+        _update_preview()
+        view_label.text = "F7 VORSCHAU %s / BILD %d" % ["AN" if preview_visible else "AUS", camera_slot + 1]
     elif event.keycode == KEY_F5:
         message.text = "F5: RAUM WECHSELT NICHT MEHR. LAUFE DURCH DIE OEFFNUNG BEI X=9, Z=5."
