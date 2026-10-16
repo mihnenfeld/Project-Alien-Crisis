@@ -19,3 +19,6 @@ assets/materials/pack01/
 assets/backgrounds/commanddeck_render_*.png
 
 assets/characters/soldier/
+
+# Optional rendered concept view installed from Downloads
+assets/backgrounds/commanddeck_concept.png
