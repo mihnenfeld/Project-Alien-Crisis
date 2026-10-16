@@ -44,6 +44,8 @@ func _draw() -> void:
         draw_line(Vector2(x, 122), Vector2(x, 638), Color("#31434b"), 1)
     for y in range(122, 638, 32):
         draw_line(Vector2(80, y), Vector2(1200, y), Color("#31434b"), 1)
+    _surface("floor", Rect2(80, 122, 644, 516), 0.60)
+    _surface("floor", Rect2(748, 122, 452, 516), 0.60)
     draw_rect(Rect2(115, 174, 300, 110), Color("#334956"))
     draw_rect(Rect2(135, 193, 260, 70), Color("#0c2b37"))
     draw_rect(Rect2(154, 211, 210, 8), Color("#59bbb8"))
@@ -55,15 +57,16 @@ func _draw() -> void:
     draw_rect(Rect2(855, 223, 46, 8), Color("#5edaca"))
     draw_rect(Rect2(839, 490, 117, 62), Color("#51545a"))
     # Lift with unmistakable teal destination indicator.
+    draw_rect(Rect2(LIFT.position + Vector2(10, 12), LIFT.size), Color(0, 0, 0, 0.50))
     draw_rect(LIFT, Color("#465861"))
+    _surface("elevator", LIFT, 0.66)
     draw_rect(LIFT.grow(-9), Color("#091d2b"))
     draw_rect(Rect2(1048, 311, 79, 12), Color("#69dbc3"))
     draw_rect(Rect2(1065, 343, 46, 40), Color("#334c54"))
     draw_line(Vector2(1088, 343), Vector2(1088, 383), Color("#8eb2b7"), 3)
     for obstacle in BLOCKS:
         if obstacle.size.y >= 170 or obstacle.size.x >= 500:
-            draw_rect(obstacle, Color("#52606b"))
-            draw_rect(obstacle.grow(-5), Color("#293b48"))
+            _wall_depth(obstacle)
     # Clear passage between the two rooms.
     draw_rect(Rect2(718, 315, 36, 98), Color("#4f938f"))
     draw_line(Vector2(721, 316), Vector2(721, 411), Color("#9bf0d8"), 3)
