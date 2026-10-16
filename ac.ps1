@@ -1,5 +1,5 @@
 param(
-    [ValidateSet('all','play','check','update','assets','perspective','prerendered')]
+    [ValidateSet('all','play','check','update','assets','perspective','prerendered','3d')]
     [string]$Action = 'all'
 )
 $ErrorActionPreference = 'Stop'
@@ -59,5 +59,6 @@ switch ($Action) {
     'play' { Start-Demo }
     'perspective' { Start-Demo -TargetScene 'res://scenes/demo_perspective.tscn' }
     'prerendered' { Start-Demo -TargetScene 'res://scenes/demo_prerendered.tscn' }
+    '3d' { Start-Demo -TargetScene 'res://scenes/demo_3d.tscn' }
     'all' { Update-Project; Install-Assets; Start-Demo }
 }
