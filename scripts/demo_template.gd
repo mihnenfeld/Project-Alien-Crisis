@@ -2,6 +2,7 @@ extends Node3D
 ## Demo 2.2: persistent connected world. Only camera changes, actor never respawns.
 const ROOM_SCRIPT = preload("res://scripts/ac_room.gd")
 const CHARACTER_SCRIPT = preload("res://scripts/ac_character.gd")
+const COMMAND_DETAILS = preload("res://scripts/ac_commanddeck_details.gd")
 const ROOM_WIDTH := 9.0
 var rooms: Array[Node3D] = []
 var actor: CharacterBody3D
@@ -46,7 +47,7 @@ func _ready() -> void:
     add_child(camera)
     var ui := CanvasLayer.new()
     add_child(ui)
-    heading = _label(ui,Vector2(26,21),"ALIEN CRISIS / VERBUNDENE RAUMWELT 2.2",24)
+    heading = _label(ui,Vector2(26,21),"ALIEN CRISIS / KOMMANDODECK 2.4",24)
     _label(ui,Vector2(27,56),"WASD / SHIFT | KAMERA AUTOMATISCH | F6: RENDER/3D | F7: BILDVORSCHAU | ESC: ENDE",15)
     message = _label(ui,Vector2(28,682),"BEIDE RAEUME BESTEHEN DAUERHAFT. DURCHGANG RECHTS HINTEN.",15)
     view_label = _label(ui,Vector2(27,87),"F6: RENDERBILD EIN/AUS  |  ERSTER TEST: 3D-SZENE ALS EXAKTE KULISSE",14)
@@ -82,6 +83,10 @@ func _make_room(index: int) -> void:
         room.call("add_furniture","Command desk",Vector2(2.2,1.75),Vector2(2.6,1.1),1.15,Color("#536d79"))
         room.call("add_furniture","Terminal",Vector2(6.5,1.9),Vector2(1.25,1.0),1.05,Color("#315b65"))
         room.call("add_furniture","Planning table",Vector2(4.55,4.75),Vector2(2.5,1.25),0.85,Color("#5b6674"))
+        var dressing := Node3D.new()
+        dressing.name = "CommandDeckArt"
+        dressing.set_script(COMMAND_DETAILS)
+        room.add_child(dressing)
     else:
         room.call("add_furniture","Equipment",Vector2(1.6,1.4),Vector2(1.4,1.25),1.4,Color("#59616b"))
         room.call("add_furniture","Service panel",Vector2(7.3,1.4),Vector2(1.2,1.1),1.6,Color("#375365"))
@@ -134,7 +139,7 @@ func _update_camera(force: bool) -> void:
         2:
             camera.position = Vector3(22.8,8.8,12.4)
             camera.look_at(Vector3(13.5,0.9,3.3),Vector3.UP)
-    heading.text = "ALIEN CRISIS / %s / DEMO 2.2" % ("WARTUNGSKORRIDOR" if camera_slot == 2 else "KOMMANDODECK")
+    heading.text = "ALIEN CRISIS / %s / DEMO 2.4" % ("WARTUNGSKORRIDOR" if camera_slot == 2 else "KOMMANDODECK")
     message.text = "KAMERA %d / POSITION X %.1f Z %.1f / KEIN RESPAWN" % [camera_slot+1,actor.position.x,actor.position.z]
     if render_mode:
         _show_baked_view()
