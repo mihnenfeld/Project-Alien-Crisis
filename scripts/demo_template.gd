@@ -88,7 +88,7 @@ func _update_camera(force: bool) -> void:
 func _switch_room() -> void:
     var destination := 1 - active_room
     # Arrive just inside the corresponding doorway, never at room center.
-    var arrival := Vector2(1.25, 5.4) if destination == 1 else Vector2(7.65, 5.4)
+    var arrival := Vector2(0.7, 5.4) if destination == 1 else Vector2(7.65, 5.4)
     _build_room(destination, arrival)
 
 func _unhandled_key_input(ev: InputEvent) -> void:
