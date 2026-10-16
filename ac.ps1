@@ -82,6 +82,21 @@ function Install-Soldier {
         Write-Host 'Soldat mit Laufanimation installiert.' -ForegroundColor Green
     }
 }
+function Install-Concept {
+    $Zip = Join-Path (Join-Path $env:USERPROFILE 'Downloads') 'Alien_Crisis_Concept_Camera01.zip'
+    $Dest = Join-Path $Root 'assets\backgrounds'
+    $Image = Join-Path $Dest 'commanddeck_concept.png'
+    if (!(Test-Path -LiteralPath $Image)) {
+        if (!(Test-Path -LiteralPath $Zip)) {
+            Write-Warning "Optionales Konzeptgrafikpaket fehlt. F8 nicht verfuegbar: $Zip"
+            return
+        }
+        New-Item -ItemType Directory -Force -Path $Dest | Out-Null
+        Expand-Archive -LiteralPath $Zip -DestinationPath $Dest -Force
+        if (!(Test-Path -LiteralPath $Image)) { throw 'Konzeptbild fehlt nach ZIP-Import.' }
+        Write-Host 'Konzept-Kulisse fuer Kamera 1 installiert.' -ForegroundColor Green
+    }
+}
 function Start-Demo {
     param([string]$TargetScene = $Scene)
     Check-Godot
@@ -103,7 +118,7 @@ switch ($Action) {
     'perspective' { Start-Demo -TargetScene 'res://scenes/demo_perspective.tscn' }
     'prerendered' { Start-Demo -TargetScene 'res://scenes/demo_prerendered.tscn' }
     '3d' { Start-Demo -TargetScene 'res://scenes/demo_3d.tscn' }
-    'template' { Start-Demo -TargetScene 'res://scenes/demo_template.tscn' }
+    'template' { Install-Concept; Start-Demo -TargetScene 'res://scenes/demo_template.tscn' }
     'render' { Install-Rendered-Art; Install-Walkmask; Install-Soldier; Start-Demo -TargetScene 'res://scenes/demo_rendered.tscn' }
     'all' { Update-Project; Install-Assets; Start-Demo }
 }
