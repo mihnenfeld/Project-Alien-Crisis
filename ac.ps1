@@ -4,15 +4,23 @@ param(
 )
 $ErrorActionPreference = 'Stop'
 $Root = Split-Path -Parent $MyInvocation.MyCommand.Path
-$Godot = 'C:\Users\Malte\Downloads\Godot_v4.7.2-stable_win64.exe'
-if (Test-Path -LiteralPath $Godot -PathType Container) {
-    $Godot = Join-Path $Godot 'Godot_v4.7.2-stable_win64.exe'
+$GodotSearchRoot = Join-Path $env:USERPROFILE 'Downloads'
+$Godot = $null
+$preferred = Join-Path $GodotSearchRoot 'Godot_v4.7.2-stable_win64.exe\Godot_v4.7.2-stable_win64.exe'
+if (Test-Path -LiteralPath $preferred -PathType Leaf) {
+    $Godot = $preferred
+} else {
+    $found = @(Get-ChildItem -LiteralPath $GodotSearchRoot -Filter 'Godot*win64.exe' -File -Recurse -ErrorAction SilentlyContinue |
+        Where-Object { $_.Name -notmatch 'console' } |
+        Sort-Object FullName)
+    if ($found.Count -gt 0) { $Godot = $found[0].FullName }
 }
 $Scene = 'res://scenes/demo_outpost.tscn'
 function Check-Godot {
-    if (!(Test-Path -LiteralPath $Godot)) {
+    if (!$Godot -or !(Test-Path -LiteralPath $Godot -PathType Leaf)) {
         throw "Godot nicht gefunden: $Godot"
     }
+    Write-Host "Godot: $Godot" -ForegroundColor Cyan
     & $Godot --version
     if ($LASTEXITCODE -ne 0) { throw "Godot konnte nicht ausgefuehrt werden." }
 }
