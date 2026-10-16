@@ -18,3 +18,21 @@ Final Fantasy, Mass Effect, RimWorld, Fallout 1–2.
 
 ## Scope target
 Approx. 20–30 hours for one playthrough, with replay value through branching outcomes.
+
+
+## Binding gameplay direction (2026-10-16)
+
+- **Engine:** Godot 4. All commercial game code and artwork must have appropriate rights.
+- **Exploration:** Characters move freely through fixed-camera, oblique **2.5D environments with pre-rendered backgrounds**, inspired by Final Fantasy VIII. A walk/collision map, foreground occlusion and interactive hotspots support each scene. The presentation may use live effects over the pre-rendered image.
+- **Encounters:** Enemies are **visible during exploration**. No random encounters. Position, approach and detection can influence the start of combat (for example surprise and positioning).
+- **Combat:** **CTB-style conditional turn-based combat**, inspired by Final Fantasy X, not real-time action combat and not classic time-filling ATB. The upcoming action order is visible and depends on actions and character statistics.
+- **Combat party:** All participants in the raid fight; there is **no mid-combat party swapping** and **no Overdrive bar**.
+- **Action categories:** normal action / talent or ability / special action. Limited action points for specials recover only at rare checkpoints, artifacts or between raids (not on each turn).
+- **Positioning:** front/back roles affect targeting, protection and reach.
+- **Campaign:** walkable, upgradable base -> raids -> consequential choices -> return to base; companion and resource progression persist.
+- **Companions:** initial Medic and Mechanic; intro/tutorial concludes with choosing one; unchosen character may return later.
+- **Co-op goal:** two players; player 1 controls the protagonist, player 2 controls a companion, who remains AI-controlled when solo or disconnected. Campaign state is authoritative on a local dedicated server run by the host.
+- **Workflow:** assistant develops and commits code, scenes, automated tests and art integration via GitHub; user pulls, launches and playtests with minimal PowerShell work.
+- **Scope safety:** retain the existing Godot scenes and prototype; new exploration/battle systems should be built incrementally and tested before changing the project's main scene.
+
+These decisions supersede the earlier experiments with real-time top-down combat or full 3D/FPS presentation. Inspiration does not authorize copying third-party game art, source code or protected assets.
