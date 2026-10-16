@@ -48,3 +48,19 @@ These decisions supersede the earlier experiments with real-time top-down combat
 - **Threats can persist between visits:** avoiding an alien leaves it present; sealing it in a sector changes available paths; fighting may cost valuable resources. A later visit may reveal how the situation evolved.
 - **Technical requirement:** assign stable location/entity IDs and store persistent world-state deltas separately from the base scene. On loading a location, apply those deltas; keep temporary encounter/session state distinct. Dedicated server remains authoritative in co-op.
 - **Prototype priority:** Outpost A-17 should retain meaningful gate, generator, encounter and recovery state when evacuated and revisited, while supporting a new objective on a later visit.
+
+
+## Story locations and repeatable operations (2026-10-16)
+
+Two complementary types of destinations:
+1. **Fixed story locations:** authored levels with persistent entities, authored encounters, narrative discoveries, consequences, multiple revisits, equipment-gated routes, and meaningful changes from player decisions.
+2. **Repeatable operations:** optional, possibly seeded/procedurally assembled expedition areas for supplies, salvage, limited experience/training progression and recoverable gear. These supplement the story and give players a way out of resource shortages and difficulty-related softlocks.
+
+Design safeguards:
+- No mandatory grinding to beat the main story at intended difficulty. Repeatable expeditions should offer recovery opportunities, not replace authored content.
+- No guaranteed free rewards: expedition risk, time and opportunity costs should remain meaningful; provide a low-risk minimum-recovery option for genuinely stranded players.
+- Keep major revelations, unique companions and pivotal choices in authored story content; do not hide essential progression behind random drops.
+- Use curated room modules, encounter budgets and seeded generation rather than pure unconstrained randomness, fitting fixed-camera/prerendered visual presentation.
+- Repeatable rewards and enemy levels should be bounded to avoid infinite trivial farming and runaway power scaling. Experience is gained for completing objectives and surviving, not merely for killing creatures; avoidance and nonviolent solutions remain viable.
+- Softlock prevention must also handle required key items and indispensable tools via alternative recovery or guaranteed access, not only XP/loot.
+- The dedicated server stores the seed, rewards claimed and relevant consequences, while the fixed locations keep their own persistent state.
