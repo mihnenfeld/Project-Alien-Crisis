@@ -19,6 +19,9 @@ var baking := false
 var view_label: Label
 var capture_preview: TextureRect
 var preview_visible := false
+var concept_mode := false
+var concept_texture: Texture2D
+const CONCEPT_PATH := "res://assets/backgrounds/commanddeck_concept.png"
 
 func _ready() -> void:
     var env := WorldEnvironment.new()
@@ -48,7 +51,7 @@ func _ready() -> void:
     var ui := CanvasLayer.new()
     add_child(ui)
     heading = _label(ui,Vector2(26,21),"ALIEN CRISIS / KOMMANDODECK 2.4",24)
-    _label(ui,Vector2(27,56),"WASD / SHIFT | KAMERA AUTOMATISCH | F6: RENDER/3D | F7: BILDVORSCHAU | ESC: ENDE",15)
+    _label(ui,Vector2(27,56),"WASD / SHIFT | KAMERA AUTOMATISCH | F6: RENDER/3D | F7: VORSCHAU | F8: KONZEPT | F9: REFERENZ | ESC: ENDE",15)
     message = _label(ui,Vector2(28,682),"BEIDE RAEUME BESTEHEN DAUERHAFT. DURCHGANG RECHTS HINTEN.",15)
     view_label = _label(ui,Vector2(27,87),"F6: RENDERBILD EIN/AUS  |  ERSTER TEST: 3D-SZENE ALS EXAKTE KULISSE",14)
     capture_preview = TextureRect.new()
@@ -58,6 +61,7 @@ func _ready() -> void:
     capture_preview.stretch_mode = TextureRect.STRETCH_SCALE
     capture_preview.visible = false
     ui.add_child(capture_preview)
+    concept_texture = _load_concept()
     _update_camera(true)
     _prepare_backdrop()
     _bake_camera_views.call_deferred()
@@ -141,7 +145,9 @@ func _update_camera(force: bool) -> void:
             camera.look_at(Vector3(13.5,0.9,3.3),Vector3.UP)
     heading.text = "ALIEN CRISIS / %s / DEMO 2.4" % ("WARTUNGSKORRIDOR" if camera_slot == 2 else "KOMMANDODECK")
     message.text = "KAMERA %d / POSITION X %.1f Z %.1f / KEIN RESPAWN" % [camera_slot+1,actor.position.x,actor.position.z]
-    if render_mode:
+    if concept_mode:
+        _apply_concept()
+    elif render_mode:
         _show_baked_view()
     _update_preview()
 
@@ -261,12 +267,94 @@ func _toggle_render() -> void:
     if baked_views.size() > 0:
         view_label.text = "F6: %s | %d/3 KAMERABILDER | FIGUR LIVE" % [("PRERENDER" if render_mode else "3D"), baked_views.size()]
 
+func _load_concept() -> Texture2D:
+    if not FileAccess.file_exists(CONCEPT_PATH):
+        return null
+    var image := Image.new()
+    if image.load(CONCEPT_PATH) != OK:
+        push_warning("Konzeptbild kann nicht geladen werden")
+        return null
+    return ImageTexture.create_from_image(image)
+
+func _apply_concept() -> void:
+    # Single-camera visual experiment; not a calibrated prerender yet.
+    for r in rooms:
+        r.visible = not concept_mode
+    if not concept_mode:
+        backdrop.visible = false
+        return
+    if concept_texture == null or camera_slot != 0:
+        concept_mode = false
+        for r in rooms:
+            r.visible = true
+        backdrop.visible = false
+        view_label.text = "KONZEPT NUR KAMERA 1; F8 ERNEUT TESTEN"
+        return
+    _display_texture(concept_texture)
+    view_label.text = "KONZEPTGRAFIK – NOCH NICHT PERSPEKTIVISCH REGISTRIERT"
+
+func _display_texture(tex: Texture2D) -> void:
+    var mat := StandardMaterial3D.new()
+    mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+    mat.albedo_texture = tex
+    mat.cull_mode = BaseMaterial3D.CULL_DISABLED
+    backdrop.material_override = mat
+    var distance := 35.0
+    var h := 2.0 * distance * tan(deg_to_rad(camera.fov)*0.5)
+    var aspect := get_viewport().get_visible_rect().size.aspect()
+    var quad: QuadMesh = backdrop.mesh
+    quad.size = Vector2(h*aspect,h)
+    backdrop.global_transform = camera.global_transform.translated_local(Vector3(0,0,-distance))
+    backdrop.visible = true
+
+func _export_camera_reference() -> void:
+    if baking:
+        return
+    var was_concept := concept_mode
+    var was_render := render_mode
+    concept_mode = false
+    render_mode = false
+    backdrop.visible = false
+    for r in rooms:
+        r.visible = true
+    var old_actor := actor.visible
+    var old_ui := heading.get_parent().visible
+    actor.visible = false
+    heading.get_parent().visible = false
+    await get_tree().process_frame
+    await RenderingServer.frame_post_draw
+    var img := get_viewport().get_texture().get_image()
+    var path := "user://alien_crisis_camera_%02d_reference.png" % (camera_slot + 1)
+    var err := img.save_png(path)
+    actor.visible = old_actor
+    heading.get_parent().visible = old_ui
+    concept_mode = was_concept
+    render_mode = was_render
+    if concept_mode:
+        _apply_concept()
+    elif render_mode:
+        for r in rooms:
+            r.visible = false
+        _show_baked_view()
+    view_label.text = ("REFERENZ GESPEICHERT: " + ProjectSettings.globalize_path(path)) if err == OK else ("EXPORTFEHLER: " + error_string(err))
+    print(view_label.text)
+
 func _unhandled_key_input(event: InputEvent) -> void:
     if not event is InputEventKey or not event.pressed or event.echo:
         return
     if event.keycode == KEY_ESCAPE:
         get_tree().quit()
+    elif event.keycode == KEY_F8:
+        if render_mode:
+            _toggle_render()
+        concept_mode = not concept_mode
+        _apply_concept()
+    elif event.keycode == KEY_F9:
+        _export_camera_reference()
     elif event.keycode == KEY_F6:
+        if concept_mode:
+            concept_mode = false
+            _apply_concept()
         _toggle_render()
     elif event.keycode == KEY_F7:
         preview_visible = not preview_visible
