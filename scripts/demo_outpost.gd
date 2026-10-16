@@ -20,6 +20,7 @@ var title_label: Label
 var hint_label: Label
 var status_label: Label
 var console_rect := Rect2(852, 267, 78, 56)
+var access_panel_rect := Rect2(600, 263, 66, 50)
 var generator_rect := Rect2(402, 157, 82, 64)
 var gate_rect := Rect2(720, 315, 32, 98)
 var ui: CanvasLayer
@@ -62,7 +63,7 @@ func _blocked(test: Vector2) -> bool:
             return true
     if not gate_open and gate_rect.grow(16).has_point(test):
         return true
-    if console_rect.grow(16).has_point(test) or generator_rect.grow(16).has_point(test):
+    if console_rect.grow(16).has_point(test) or generator_rect.grow(16).has_point(test) or access_panel_rect.grow(12).has_point(test):
         return true
     return false
 
@@ -86,7 +87,7 @@ func _unhandled_key_input(event: InputEvent) -> void:
             else:
                 gate_open = true
                 announcement = "SCHOTT GEÖFFNET."
-        elif player.distance_to(console_rect.get_center()) < 110:
+        elif player.distance_to(access_panel_rect.get_center()) < 110 or player.distance_to(console_rect.get_center()) < 110:
             if not generator_on:
                 announcement = "TERMINAL OFFLINE: GENERATOR AKTIVIEREN."
             elif gate_released:
@@ -137,6 +138,11 @@ func _draw() -> void:
     draw_rect(Rect2(419,175,47,19),Color("#42e5c0") if generator_on else Color("#b88a45"))
     for i in range(4):
         draw_rect(Rect2(412 + i*18,204,9,5),Color("#839ca1"))
+    # West-side security panel: door can be authorized before entering east wing.
+    draw_rect(access_panel_rect, Color("#293f4a"))
+    draw_rect(access_panel_rect.grow(-7), Color("#124550") if generator_on else Color("#26333b"))
+    draw_rect(Rect2(609,274,45,4), Color("#7af8d5") if gate_released else Color("#d89a5b"))
+    draw_rect(Rect2(609,285,32,3), Color("#64a5a6"))
     # Eastern terminal and antenna.
     _glow(console_rect.get_center(),Color("#28cbbf"),76)
     draw_rect(console_rect,Color("#283a45"))
@@ -164,7 +170,7 @@ func _draw() -> void:
         draw_circle(pos,5,Color.WHITE)
     _marine(player, facing)
     # Hover-style interaction marker.
-    for target in [generator_rect.get_center(),console_rect.get_center(),gate_rect.get_center()]:
+    for target in [generator_rect.get_center(),console_rect.get_center(),access_panel_rect.get_center(),gate_rect.get_center()]:
         if player.distance_to(target)<110:
             draw_arc(target,31,0,TAU,40,Color("#7af8d5"),2,true)
 
