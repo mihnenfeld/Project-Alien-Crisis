@@ -166,7 +166,6 @@ func _draw() -> void:
     draw_rect(Rect2(419,175,47,19),Color("#42e5c0") if generator_on else Color("#b88a45"))
     for i in range(4):
         draw_rect(Rect2(412 + i*18,204,9,5),Color("#839ca1"))
-    _surface("bulkhead", gate_rect.grow(12), 0.68)
     # West-side security panel: door can be authorized before entering east wing.
     draw_rect(access_panel_rect, Color("#293f4a"))
     draw_rect(access_panel_rect.grow(-7), Color("#124550") if generator_on else Color("#26333b"))
@@ -183,6 +182,7 @@ func _draw() -> void:
     for obstacle in BLOCKS:
         _wall_depth(obstacle)
     if not gate_open:
+        _surface("bulkhead", gate_rect.grow(10), 0.72)
         draw_rect(gate_rect,Color("#b47f3a"))
         draw_rect(gate_rect.grow(-7),Color("#66543e"))
         for y in range(325,408,13):
