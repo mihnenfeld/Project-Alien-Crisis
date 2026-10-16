@@ -7,7 +7,7 @@ func _ready() -> void:
     super._ready()
     player = Vector2(220, 447)
     title_label.text = "ALIEN CRISIS / RAID: OUTPOST A-17"
-    hint_label.text = "WASD BEWEGEN | E INTERAGIEREN | EVAC IM WESTEN: E | ESC ENDE"
+    hint_label.text = "WASD BEWEGEN | SHIFT SPRINTEN | E INTERAGIEREN / EVAC | ESC ENDE"
     announcement = "RAID A-17. EVAC-PUNKT IM WESTFLUEGEL. GENERATOR / SCHOTT / ALIEN UNTERSUCHEN."
     _update_status()
 
@@ -21,6 +21,12 @@ func _unhandled_key_input(event: InputEvent) -> void:
 
 func _draw() -> void:
     super._draw()
+    # Pulsing beacon and overhead maintenance pipes for an industrial depth layer.
+    var beacon: float = 0.45 + 0.35 * sin(ambience_time * 3.0)
+    draw_circle(Vector2(1162, 186), 18, Color(0.95, 0.26, 0.17, beacon * 0.28))
+    draw_circle(Vector2(1162, 186), 5, Color(1.0, 0.39, 0.20, beacon))
+    for offset in [0, 10, 20]:
+        draw_line(Vector2(85 + offset, 169), Vector2(85 + offset, 312), Color("#4b6670"), 5)
     draw_circle(EVAC_POINT + Vector2(6, 8), 46, Color(0, 0, 0, 0.42))
     _surface("evac", Rect2(EVAC_POINT - Vector2(48, 48), Vector2(96, 96)), 0.90)
     draw_circle(EVAC_POINT, 42, Color(0.10, 0.72, 0.56, 0.17))
