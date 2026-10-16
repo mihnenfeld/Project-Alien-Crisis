@@ -2,6 +2,7 @@ extends Node2D
 ## Standalone 2.5D projection study: independent walk-space, projected at an oblique angle.
 ## Geometry and characters use one shared projection; furniture occludes the marine by foot depth.
 const SPEED: float = 245.0
+const SCALE_STUDY: float = 1.0
 const SPRINT: float = 1.65
 const ROOM := Rect2(0, 0, 850, 610)
 const FURNITURE := [
@@ -19,9 +20,9 @@ func _ready() -> void:
     RenderingServer.set_default_clear_color(Color("#070d15"))
     var ui := CanvasLayer.new()
     add_child(ui)
-    _label(ui, Vector2(35, 20), "ALIEN CRISIS  /  COMMAND DECK  /  2.5D STUDY 0.6", 24, Color("#e9eeee"))
+    _label(ui, Vector2(35, 16), "ALIEN CRISIS  /  KOMMANDODECK  /  DEMO 0.7", 24, Color("#e9eeee"))
     _label(ui, Vector2(37, 59), "WASD LAUFEN   |   SHIFT SPRINTEN   |   MAUS AUSRICHTEN   |   ESC BEENDEN", 15, Color("#91aab2"))
-    label_status = _label(ui, Vector2(38, 674), "PERSPEKTIV-TEST  /  LAUFE VOR UND HINTER DIE EINRICHTUNG", 17, Color("#72e6d0"))
+    label_status = _label(ui, Vector2(38, 674), "2.5D STUDIE  /  BEWEGE DICH UM DIE EINRICHTUNG", 17, Color("#72e6d0"))
 
 func _label(parent: Node, pos: Vector2, caption: String, size: int, tint: Color) -> Label:
     var l := Label.new()
@@ -34,7 +35,7 @@ func _label(parent: Node, pos: Vector2, caption: String, size: int, tint: Color)
 
 func _project(p: Vector2) -> Vector2:
     # Affine projection gives oblique floor and visible wall faces without any external artwork.
-    return Vector2(220.0 + p.x * 0.90 + p.y * 0.30, 170.0 + p.y * 0.62 - p.x * 0.075)
+    return Vector2(170.0 + p.x * 0.83 + p.y * 0.27, 270.0 + p.y * 0.53 - p.x * 0.045)
 
 func _physics_process(delta: float) -> void:
     time_passed += delta
@@ -77,12 +78,18 @@ func _slab(area: Rect2, elevation: float, top_color: Color, front_color: Color) 
     draw_polyline(PackedVector2Array([a + shift, b + shift, c + shift, d + shift, a + shift]), Color("#6e8790"), 2.0)
 
 func _draw() -> void:
+    # Atmosphere behind the floor: darkened space and maintenance glow.
+    draw_rect(Rect2(0, 92, 1280, 555), Color("#080e15"))
     # The floor grid makes the oblique perspective explicit.
     _slab(ROOM, 0.0, Color("#263743"), Color("#101923"))
     for xx in range(0, 851, 85):
         draw_line(_project(Vector2(xx, 0)), _project(Vector2(xx, 610)), Color(0.48, 0.65, 0.67, 0.16), 1.0)
     for yy in range(0, 611, 61):
         draw_line(_project(Vector2(0, yy)), _project(Vector2(850, yy)), Color(0.48, 0.65, 0.67, 0.16), 1.0)
+    # Diagonal access stripes imply worn steel walk lanes.
+    for px in range(20, 800, 95):
+        var q := _project(Vector2(px, 545))
+        draw_line(q, q + Vector2(12, 6), Color(0.72, 0.54, 0.23, 0.44), 3)
     # Back wall facades rise vertically from the far edge.
     var rear_l := _project(Vector2(0, 0))
     var rear_r := _project(Vector2(850, 0))
@@ -100,6 +107,9 @@ func _draw() -> void:
     for i in range(3):
         var loc := _project(Vector2(850, float(i) * 200.0))
         draw_line(loc, loc + Vector2(0, -98), Color("#576875"), 3)
+    # Conduit bank and wall seams along the rear bulkhead.
+    for n in range(4):
+        draw_line(rear_l + Vector2(0, -120 + n * 6), rear_r + Vector2(0, -120 + n * 6), Color("#20303a"), 2)
     # Rear wall industrial monitors.
     for x in [150.0, 420.0, 665.0]:
         var screen := _project(Vector2(x, 0)) + Vector2(0, -86)
@@ -120,6 +130,10 @@ func _draw() -> void:
     _marine_25d()
     for item in objects_after:
         _furniture(item)
+    # Shadow gradients and nearby signal lighting, drawn over the floor props.
+    for i in range(7):
+        var offset := float(i) * 12.0
+        draw_line(_project(Vector2(55, 580 - offset)), _project(Vector2(750, 580 - offset)), Color(0.02, 0.06, 0.09, 0.018), 8)
     # Dynamic beacon and atmospheric light.
     _light(_project(Vector2(760, 475)) + Vector2(0, -12), Color("#e88c4e"))
     var p := _project(Vector2(760, 475))
@@ -160,6 +174,7 @@ func _marine_25d() -> void:
     draw_circle(p + Vector2(0, -49), 7.0, Color("#314f56"))
     draw_line(p + Vector2(0, -35), p + Vector2(30 * cos(facing), -35 + 30 * sin(facing)), Color("#91afae"), 7.0)
     draw_circle(p + Vector2(0, -49), 3.0, Color("#7cece4"))
+    draw_arc(p + Vector2(0, -33), 21, 0.0, TAU, 32, Color(0.36, 0.93, 0.85, 0.34), 1.5, true)
 
 func draw_ellipse_shadow(p: Vector2) -> void:
     draw_set_transform(p, 0, Vector2(1.0, 0.35))
