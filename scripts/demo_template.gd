@@ -318,16 +318,17 @@ func _export_camera_reference() -> void:
     for r in rooms:
         r.visible = true
     var old_actor := actor.visible
-    var old_ui := heading.get_parent().visible
+    var ui_layer: CanvasLayer = heading.get_parent() as CanvasLayer
+    var old_ui: bool = ui_layer.visible
     actor.visible = false
-    heading.get_parent().visible = false
+    ui_layer.visible = false
     await get_tree().process_frame
     await RenderingServer.frame_post_draw
     var img := get_viewport().get_texture().get_image()
     var path := "user://alien_crisis_camera_%02d_reference.png" % (camera_slot + 1)
     var err := img.save_png(path)
     actor.visible = old_actor
-    heading.get_parent().visible = old_ui
+    ui_layer.visible = old_ui
     concept_mode = was_concept
     render_mode = was_render
     if concept_mode:
