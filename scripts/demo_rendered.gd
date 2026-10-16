@@ -3,7 +3,7 @@ extends Node2D
 ## This is a visual gameplay proof: the collision polygons are hand-matched approximations.
 const WALK_SPEED := 150.0
 const PLAYER_START := Vector2(730, 385)
-const WALL_FLOOR := PackedVector2Array([
+var wall_floor: PackedVector2Array = PackedVector2Array([
     Vector2(130,350), Vector2(335,335), Vector2(480,315), Vector2(685,297),
     Vector2(980,292), Vector2(1225,416), Vector2(1225,631),
     Vector2(1080,670), Vector2(310,677), Vector2(90,531)
@@ -54,7 +54,7 @@ func _label(root: Node, where: Vector2, text_value: String, size: int, color_val
     return l
 
 func _walkable(p: Vector2) -> bool:
-    if not Geometry2D.is_point_in_polygon(p,WALL_FLOOR):
+    if not Geometry2D.is_point_in_polygon(p,wall_floor):
         return false
     for region in blockers:
         if Geometry2D.is_point_in_polygon(p,region):
