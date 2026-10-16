@@ -83,7 +83,7 @@ func _unhandled_key_input(event: InputEvent) -> void:
         if event.keycode == KEY_ESCAPE:
             get_tree().quit()
         return
-    var trigger_story := event.keycode == KEY_E and generator_on and not story_encounter_done and player.distance_to(console_rect.get_center()) < 110
+    var trigger_story: bool = event.keycode == KEY_E and generator_on and not story_encounter_done and player.distance_to(console_rect.get_center()) < 110
     super._unhandled_key_input(event)
     if trigger_story:
         _start_battle("story")
