@@ -53,17 +53,19 @@ function Install-Rendered-Art {
     }
 }
 function Install-Walkmask {
-    $Zip = Join-Path (Join-Path $env:USERPROFILE 'Downloads') 'Alien_Crisis_Commanddeck_Walkmask_11.zip'
+    $Zip = Join-Path (Join-Path $env:USERPROFILE 'Downloads') 'Alien_Crisis_Commanddeck_Walkmask_12.zip'
     $Destination = Join-Path $Root 'assets\backgrounds'
     $Mask = Join-Path $Destination 'commanddeck_walkmask.png'
-    if (!(Test-Path -LiteralPath $Mask)) {
+    $Stamp = Join-Path $Destination '.walkmask_v12_installed'
+    if (!(Test-Path -LiteralPath $Stamp)) {
         if (!(Test-Path -LiteralPath $Zip)) {
-            throw "Walkmask-Paket fehlt: Alien_Crisis_Commanddeck_Walkmask_11.zip nach Downloads herunterladen: $Zip"
+            throw "Neue Walkmask erforderlich: Alien_Crisis_Commanddeck_Walkmask_12.zip nach Downloads laden: $Zip"
         }
         New-Item -ItemType Directory -Force -Path $Destination | Out-Null
         Expand-Archive -LiteralPath $Zip -DestinationPath $Destination -Force
         if (!(Test-Path -LiteralPath $Mask)) { throw 'Walkmask-Datei nicht im ZIP gefunden.' }
-        Write-Host 'Walkmask installiert.' -ForegroundColor Green
+        New-Item -ItemType File -Force -Path $Stamp | Out-Null
+        Write-Host 'Walkmask v1.2 installiert (vorherige Maske ersetzt).' -ForegroundColor Green
     }
 }
 function Start-Demo {
