@@ -1,5 +1,5 @@
 param(
-    [ValidateSet('all','play','check','update','assets','perspective')]
+    [ValidateSet('all','play','check','update','assets','perspective','prerendered')]
     [string]$Action = 'all'
 )
 $ErrorActionPreference = 'Stop'
@@ -42,7 +42,8 @@ function Update-Project {
 function Start-Demo {
     param([string]$TargetScene = $Scene)
     Check-Godot
-    if (!(Test-Path (Join-Path $Root 'scenes\demo_base_hub.tscn'))) {
+    $scenePath = Join-Path $Root ($TargetScene.Replace('res://', '').Replace('/', '\'))
+    if (!(Test-Path -LiteralPath $scenePath)) {
         throw 'Demo-Szene fehlt.'
     }
     & $Godot --path $Root $TargetScene
@@ -57,5 +58,6 @@ switch ($Action) {
     'assets' { Install-Assets }
     'play' { Start-Demo }
     'perspective' { Start-Demo -TargetScene 'res://scenes/demo_perspective.tscn' }
+    'prerendered' { Start-Demo -TargetScene 'res://scenes/demo_prerendered.tscn' }
     'all' { Update-Project; Install-Assets; Start-Demo }
 }
