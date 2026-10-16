@@ -24,6 +24,7 @@ var access_panel_rect := Rect2(600, 263, 66, 50)
 var generator_rect := Rect2(402, 157, 82, 64)
 var gate_rect := Rect2(720, 315, 32, 98)
 var ui: CanvasLayer
+var material_cache: Dictionary = {}
 
 func _ready() -> void:
     RenderingServer.set_default_clear_color(Color("#070c14"))
@@ -110,6 +111,31 @@ func _unhandled_key_input(event: InputEvent) -> void:
 func _update_status() -> void:
     status_label.text = announcement
 
+func _material(name: String) -> Texture2D:
+    if material_cache.has(name):
+        return material_cache[name]
+    var path := "res://assets/materials/pack01/%s/%s_albedo.png" % [name, name]
+    var image := Image.new()
+    var err := image.load(ProjectSettings.globalize_path(path))
+    if err != OK:
+        material_cache[name] = null
+        return null
+    var texture := ImageTexture.create_from_image(image)
+    material_cache[name] = texture
+    return texture
+
+func _surface(name: String, area: Rect2, opacity: float = 0.85) -> void:
+    var texture := _material(name)
+    if texture != null:
+        draw_texture_rect(texture, area, true, Color(1, 1, 1, opacity))
+
+func _wall_depth(area: Rect2) -> void:
+    draw_rect(Rect2(area.position + Vector2(7, 10), area.size), Color(0, 0, 0, 0.36))
+    draw_rect(area, Color("#43515a"))
+    _surface("wall", area.grow(-3), 0.86)
+    draw_line(area.position + Vector2(2, 2), Vector2(area.end.x - 2, area.position.y + 2), Color("#a1bbc0"), 2)
+    draw_line(Vector2(area.end.x - 2, area.position.y + 5), area.end - Vector2(2, 2), Color("#0e1720"), 4)
+
 func _draw() -> void:
     draw_rect(FLOOR, Color("#101b27"))
     # Floor grid + visually differentiated wings.
@@ -119,6 +145,8 @@ func _draw() -> void:
         draw_line(Vector2(x,122),Vector2(x,638),Color(0.23,0.40,0.45,0.11),1)
     for y in range(130,638,32):
         draw_line(Vector2(80,y),Vector2(1200,y),Color(0.23,0.40,0.45,0.11),1)
+    _surface("floor", Rect2(80, 122, 644, 516), 0.49)
+    _surface("floor", Rect2(748, 122, 452, 516), 0.49)
     # Hazard stripes and floor markings.
     draw_rect(Rect2(685,314,34,100), Color("#b38330"))
     for y in range(314,415,16):
@@ -138,6 +166,7 @@ func _draw() -> void:
     draw_rect(Rect2(419,175,47,19),Color("#42e5c0") if generator_on else Color("#b88a45"))
     for i in range(4):
         draw_rect(Rect2(412 + i*18,204,9,5),Color("#839ca1"))
+    _surface("bulkhead", gate_rect.grow(12), 0.68)
     # West-side security panel: door can be authorized before entering east wing.
     draw_rect(access_panel_rect, Color("#293f4a"))
     draw_rect(access_panel_rect.grow(-7), Color("#124550") if generator_on else Color("#26333b"))
@@ -152,9 +181,7 @@ func _draw() -> void:
     draw_line(Vector2(863,294),Vector2(908,294),Color("#56ded6"),2)
     # Door and structural walls.
     for obstacle in BLOCKS:
-        draw_rect(obstacle,Color("#40515b"))
-        draw_rect(obstacle.grow(-5),Color("#25343d"))
-        draw_line(obstacle.position+Vector2(3,3),Vector2(obstacle.end.x-3,obstacle.position.y+3),Color("#789099"),2)
+        _wall_depth(obstacle)
     if not gate_open:
         draw_rect(gate_rect,Color("#b47f3a"))
         draw_rect(gate_rect.grow(-7),Color("#66543e"))
