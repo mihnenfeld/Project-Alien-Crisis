@@ -51,20 +51,20 @@ func _build_room(index: int) -> void:
     room.set_script(ROOM_SCRIPT)
     add_child(room)
     if index == 0:
-        room.room_title = "KOMMANDODECK"
-        room.add_furniture("Command desk",Vector2(2.2,1.75),Vector2(2.6,1.1),1.15,Color("#536d79"))
-        room.add_furniture("Terminal",Vector2(6.5,1.9),Vector2(1.25,1.0),1.05,Color("#315b65"))
-        room.add_furniture("Planning table",Vector2(4.55,4.75),Vector2(2.5,1.25),0.85,Color("#5b6674"))
+        room.set("room_title", "KOMMANDODECK")
+        room.call("add_furniture","Command desk",Vector2(2.2,1.75),Vector2(2.6,1.1),1.15,Color("#536d79"))
+        room.call("add_furniture","Terminal",Vector2(6.5,1.9),Vector2(1.25,1.0),1.05,Color("#315b65"))
+        room.call("add_furniture","Planning table",Vector2(4.55,4.75),Vector2(2.5,1.25),0.85,Color("#5b6674"))
     else:
-        room.room_title = "WARTUNGSKORRIDOR"
-        room.add_furniture("Equipment",Vector2(1.6,1.4),Vector2(1.4,1.25),1.4,Color("#59616b"))
-        room.add_furniture("Service panel",Vector2(7.3,1.4),Vector2(1.2,1.1),1.6,Color("#375365"))
-        room.add_furniture("Cargo",Vector2(2.1,5.6),Vector2(1.5,1.0),0.8,Color("#776952"))
+        room.set("room_title", "WARTUNGSKORRIDOR")
+        room.call("add_furniture","Equipment",Vector2(1.6,1.4),Vector2(1.4,1.25),1.4,Color("#59616b"))
+        room.call("add_furniture","Service panel",Vector2(7.3,1.4),Vector2(1.2,1.1),1.6,Color("#375365"))
+        room.call("add_furniture","Cargo",Vector2(2.1,5.6),Vector2(1.5,1.0),0.8,Color("#776952"))
     actor.position = Vector3(4.3,0.0,3.4)
-    actor.can_stand = Callable(room,"can_stand")
+    actor.set("can_stand",Callable(room,"can_stand"))
     camera.position = Vector3(11.7,10.0,14.7) if index == 0 else Vector3(-4.5,7.5,13.8)
     camera.look_at(Vector3(4.5,0.8,3.35),Vector3.UP)
-    heading.text = "ALIEN CRISIS / %s / DEMO 2.0" % room.room_title
+    heading.text = "ALIEN CRISIS / %s / DEMO 2.0" % room.get("room_title")
 func _unhandled_key_input(ev: InputEvent) -> void:
     if not ev is InputEventKey or not ev.pressed or ev.echo:
         return
