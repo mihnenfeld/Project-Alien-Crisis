@@ -1,18 +1,12 @@
 extends Node2D
-## Demo 1.0: authored rendered command deck with 2D screen-space walk and masked foreground.
+## Demo 1.1: rendered command deck, pixel-based foot collisions and F1 walkmask debug.
 ## This is a visual gameplay proof: the collision polygons are hand-matched approximations.
 const WALK_SPEED := 150.0
 const PLAYER_START := Vector2(975, 475)
-var wall_floor: PackedVector2Array = PackedVector2Array([
-    Vector2(130,350), Vector2(335,335), Vector2(480,315), Vector2(685,297),
-    Vector2(980,292), Vector2(1225,416), Vector2(1225,631),
-    Vector2(1080,670), Vector2(310,677), Vector2(90,531)
-])
-var blockers: Array[PackedVector2Array] = [
-    PackedVector2Array([Vector2(215,245),Vector2(550,225),Vector2(565,379),Vector2(215,395)]),
-    PackedVector2Array([Vector2(695,220),Vector2(918,220),Vector2(947,353),Vector2(686,356)]),
-    PackedVector2Array([Vector2(415,375),Vector2(769,356),Vector2(898,548),Vector2(439,620)])
-]
+var walkmask: Image
+var debug_texture: Texture2D
+var show_walkmask := false
+var foot_radius := 5.0
 var player := PLAYER_START
 var look_direction := Vector2(1, 0)
 var stride := 0.0
@@ -24,15 +18,41 @@ var elapsed := 0.0
 func _ready() -> void:
     bg = _load_png("res://assets/backgrounds/commanddeck_render_bg.png")
     fg = _load_png("res://assets/backgrounds/commanddeck_render_fg.png")
+    var path := "res://assets/backgrounds/commanddeck_walkmask.png"
+    if FileAccess.file_exists(path):
+        walkmask = Image.new()
+        var read_error: Error = walkmask.load(path)
+        if read_error != OK:
+            push_error("Walkmask konnte nicht geladen werden: " + error_string(read_error))
+            walkmask = null
+        else:
+            var overlay := Image.create(walkmask.get_width(),walkmask.get_height(),false,Image.FORMAT_RGBA8)
+            for y in range(walkmask.get_height()):
+                for x in range(walkmask.get_width()):
+                    var pixel := walkmask.get_pixel(x,y)
+                    overlay.set_pixel(x,y, Color(0.1,0.9,0.55,0.22) if pixel.r > 0.5 else Color(0.95,0.17,0.12,0.22))
+            debug_texture = ImageTexture.create_from_image(overlay)
+    else:
+        push_error("Walkmask fehlt: " + path)
+
     RenderingServer.set_default_clear_color(Color("#050a0e"))
     var ui := CanvasLayer.new()
     add_child(ui)
-    _label(ui, Vector2(25,18), "ALIEN CRISIS  /  KOMMANDODECK  /  RENDER-DEMO 1.0", 22, Color("#e8f3f2"))
-    _label(ui, Vector2(28,52), "WASD LAUFEN  |  SHIFT SPRINTEN  |  E INTERAGIEREN  |  ESC BEENDEN", 14, Color("#adc3c7"))
+    _label(ui, Vector2(25,18), "ALIEN CRISIS  /  KOMMANDODECK  /  RENDER-DEMO 1.1", 22, Color("#e8f3f2"))
+    _label(ui, Vector2(28,52), "WASD LAUFEN  |  SHIFT SPRINTEN  |  E INTERAGIEREN  |  F1 MASKE  |  ESC BEENDEN", 14, Color("#adc3c7"))
     status = _label(ui, Vector2(28,682), "TEST: GERENDERTE KULISSE, LAUFZONEN UND VORDERGRUNDVERDECKUNG", 14, Color("#7be3cf"))
     if not _walkable(player):
         push_error("Startpunkt liegt in einer gesperrten Laufzone: %s" % player)
         status.text = "FEHLER: STARTPUNKT NICHT BEGEHBAR"
+    if walkmask == null:
+        status.text = "WALKMASK FEHLT: ZIP in Downloads legen und .\\ac.ps1 render erneut starten"
+    elif not _walkable(player):
+        var resolved := _nearest_walkable(player)
+        if resolved == player:
+            push_error("Kein gueltiger Spawnpunkt in der Walkmask")
+        else:
+            player = resolved
+            status.text = "STARTPUNKT AUF BEGEHBAREN BODEN VERSCHOBEN"
     if bg == null:
         status.text = "ASSET FEHLT: Alien_Crisis_Commanddeck_10.zip nach Downloads laden und .\\ac.ps1 render erneut starten."
 
@@ -56,13 +76,31 @@ func _label(root: Node, where: Vector2, text_value: String, size: int, color_val
     root.add_child(l)
     return l
 
-func _walkable(p: Vector2) -> bool:
-    if not Geometry2D.is_point_in_polygon(p,wall_floor):
+func _mask_pixel(p: Vector2) -> bool:
+    if walkmask == null:
         return false
-    for region in blockers:
-        if Geometry2D.is_point_in_polygon(p,region):
+    var xx := int(round(p.x))
+    var yy := int(round(p.y))
+    if xx < 0 or yy < 0 or xx >= walkmask.get_width() or yy >= walkmask.get_height():
+        return false
+    return walkmask.get_pixel(xx,yy).r > 0.5
+
+func _walkable(p: Vector2) -> bool:
+    for offset in [Vector2.ZERO,Vector2(foot_radius,0),Vector2(-foot_radius,0),Vector2(0,foot_radius),Vector2(0,-foot_radius)]:
+        if not _mask_pixel(p + offset):
             return false
     return true
+
+func _nearest_walkable(origin: Vector2) -> Vector2:
+    if _walkable(origin):
+        return origin
+    for radius in range(8,501,8):
+        for index in range(48):
+            var angle: float = TAU * float(index) / 48.0
+            var candidate := origin + Vector2(cos(angle),sin(angle)) * float(radius)
+            if _walkable(candidate):
+                return candidate
+    return origin
 
 func _physics_process(delta: float) -> void:
     elapsed += delta
@@ -82,7 +120,10 @@ func _physics_process(delta: float) -> void:
 func _unhandled_key_input(ev: InputEvent) -> void:
     if not ev is InputEventKey or not ev.pressed or ev.echo:
         return
-    if ev.keycode == KEY_ESCAPE:
+    if ev.keycode == KEY_F1:
+        show_walkmask = not show_walkmask
+        queue_redraw()
+    elif ev.keycode == KEY_ESCAPE:
         get_tree().quit()
     elif ev.keycode == KEY_E:
         if player.distance_to(Vector2(1020,375)) < 170:
@@ -97,6 +138,9 @@ func _draw() -> void:
         draw_texture_rect(bg,Rect2(Vector2.ZERO,Vector2(1280,720)),false)
     else:
         draw_rect(Rect2(0,0,1280,720),Color("#0a151c"))
+    if show_walkmask and debug_texture != null:
+        draw_texture(debug_texture,Vector2.ZERO)
+        draw_circle(player,foot_radius+4,Color.YELLOW)
     _player()
     # Front planning desk occludes the character only when behind its depth edge.
     if fg != null and player.y < 590:
