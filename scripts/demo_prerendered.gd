@@ -18,8 +18,8 @@ var background_texture: Texture2D
 var foreground_texture: Texture2D
 
 func _ready() -> void:
-    background_texture = load("res://assets/backgrounds/commanddeck_bg.svg")
-    foreground_texture = load("res://assets/backgrounds/commanddeck_fg.svg")
+    background_texture = _svg_texture("res://assets/backgrounds/commanddeck_bg.svg")
+    foreground_texture = _svg_texture("res://assets/backgrounds/commanddeck_fg.svg")
     RenderingServer.set_default_clear_color(Color("#060c14"))
     var canvas := CanvasLayer.new()
     add_child(canvas)
@@ -27,6 +27,18 @@ func _ready() -> void:
     _label(canvas, Vector2(33, 56), "WASD BEWEGEN   |   SHIFT SPRINTEN   |   E INTERAGIEREN   |   ESC BEENDEN", 14, Color("#9ab3bc"))
     popup = _label(canvas, Vector2(35, 680), "PRERENDER-TECHNIKTEST  /  RAUM + SPIELFIGUR + LAUFMASKE", 15, Color("#82ead7"))
     queue_redraw()
+
+func _svg_texture(path: String) -> Texture2D:
+    var svg_text: String = FileAccess.get_file_as_string(path)
+    if svg_text.is_empty():
+        push_error("SVG-Datei fehlt oder ist leer: " + path)
+        return null
+    var img := Image.new()
+    var error: Error = img.load_svg_from_string(svg_text, 1.0)
+    if error != OK:
+        push_error("SVG konnte nicht gerendert werden: %s (%s)" % [path, error_string(error)])
+        return null
+    return ImageTexture.create_from_image(img)
 
 func _label(node: Node, pos: Vector2, title: String, size: int, tint: Color) -> Label:
     var l := Label.new()
