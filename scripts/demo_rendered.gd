@@ -1,12 +1,12 @@
 extends Node2D
-## Demo 1.1: rendered command deck, pixel-based foot collisions and F1 walkmask debug.
+## Demo 1.3: forgiving pixel-foot collision, short-step wall sliding and F5 mask debug.
 ## This is a visual gameplay proof: the collision polygons are hand-matched approximations.
 const WALK_SPEED := 150.0
 const PLAYER_START := Vector2(975, 475)
 var walkmask: Image
 var debug_texture: Texture2D
 var show_walkmask := false
-var foot_radius := 2.0
+var foot_radius := 0.0
 var player := PLAYER_START
 var look_direction := Vector2(1, 0)
 var stride := 0.0
@@ -38,7 +38,7 @@ func _ready() -> void:
     RenderingServer.set_default_clear_color(Color("#050a0e"))
     var ui := CanvasLayer.new()
     add_child(ui)
-    _label(ui, Vector2(25,18), "ALIEN CRISIS  /  KOMMANDODECK  /  RENDER-DEMO 1.2", 22, Color("#e8f3f2"))
+    _label(ui, Vector2(25,18), "ALIEN CRISIS  /  KOMMANDODECK  /  RENDER-DEMO 1.3", 22, Color("#e8f3f2"))
     _label(ui, Vector2(28,52), "WASD LAUFEN  |  SHIFT SPRINTEN  |  E INTERAGIEREN  |  F5 MASKE  |  ESC BEENDEN", 14, Color("#adc3c7"))
     status = _label(ui, Vector2(28,682), "TEST: GERENDERTE KULISSE, LAUFZONEN UND VORDERGRUNDVERDECKUNG", 14, Color("#7be3cf"))
     if not _walkable(player):
@@ -86,11 +86,48 @@ func _mask_pixel(p: Vector2) -> bool:
     return walkmask.get_pixel(xx,yy).r > 0.5
 
 func _walkable(p: Vector2) -> bool:
-    for offset in [Vector2.ZERO,Vector2(foot_radius,0),Vector2(-foot_radius,0),Vector2(0,foot_radius),Vector2(0,-foot_radius)]:
-        if not _mask_pixel(p + offset):
-            return false
-    return true
+    # Use the visual foot contact, not head/torso or a wide invisible circle.
+    return _mask_pixel(p)
 
+func _move_with_slide(displacement: Vector2) -> void:
+    if displacement.length_squared() < 0.00001:
+        return
+    # Small substeps prevent skipped mask pixels during sprinting.
+    var count := maxi(1, ceili(displacement.length() / 2.0))
+    var step := displacement / float(count)
+    for n in range(count):
+        if _walkable(player + step):
+            player += step
+            continue
+        # Try axis sliding first so diagonal movement doesn't snag on walls.
+        var sx := Vector2(step.x, 0)
+        var sy := Vector2(0, step.y)
+        if absf(step.x) >= absf(step.y):
+            if _walkable(player + sx):
+                player += sx
+                continue
+            if _walkable(player + sy):
+                player += sy
+                continue
+        else:
+            if _walkable(player + sy):
+                player += sy
+                continue
+            if _walkable(player + sx):
+                player += sx
+                continue
+        # Allow a tiny lateral nudge past imperfect hand-painted mask edges.
+        var normal := Vector2(-step.y, step.x).normalized()
+        var moved := false
+        for distance in [2.0, 4.0, 6.0]:
+            for sign_value in [1.0, -1.0]:
+                var push := normal * distance * sign_value
+                if _walkable(player + push) and _walkable(player + push + step):
+                    player += push + step
+                    moved = true
+                    break
+            if moved:
+                break
 func _nearest_walkable(origin: Vector2) -> Vector2:
     if _walkable(origin):
         return origin
@@ -107,11 +144,8 @@ func _physics_process(delta: float) -> void:
     var axes := Input.get_vector("move_left","move_right","move_up","move_down")
     var speed := WALK_SPEED * (1.65 if Input.is_key_pressed(KEY_SHIFT) else 1.0)
     var offset := axes * speed * delta
-    # Screen-space movement, stable even when future camera cuts are added.
-    if _walkable(Vector2(player.x + offset.x, player.y)):
-        player.x += offset.x
-    if _walkable(Vector2(player.x,player.y + offset.y)):
-        player.y += offset.y
+    # Screen-space movement with forgiving collision and smooth gliding.
+    _move_with_slide(offset)
     if axes.length_squared() > 0.01:
         look_direction = axes.normalized()
         stride += delta * (16.0 if Input.is_key_pressed(KEY_SHIFT) else 10.0)
