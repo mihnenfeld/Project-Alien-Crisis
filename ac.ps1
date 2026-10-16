@@ -52,6 +52,20 @@ function Install-Rendered-Art {
         Write-Host 'Render-Kulissen installiert.' -ForegroundColor Green
     }
 }
+function Install-Walkmask {
+    $Zip = Join-Path (Join-Path $env:USERPROFILE 'Downloads') 'Alien_Crisis_Commanddeck_Walkmask_11.zip'
+    $Destination = Join-Path $Root 'assets\backgrounds'
+    $Mask = Join-Path $Destination 'commanddeck_walkmask.png'
+    if (!(Test-Path -LiteralPath $Mask)) {
+        if (!(Test-Path -LiteralPath $Zip)) {
+            throw "Walkmask-Paket fehlt: Alien_Crisis_Commanddeck_Walkmask_11.zip nach Downloads herunterladen: $Zip"
+        }
+        New-Item -ItemType Directory -Force -Path $Destination | Out-Null
+        Expand-Archive -LiteralPath $Zip -DestinationPath $Destination -Force
+        if (!(Test-Path -LiteralPath $Mask)) { throw 'Walkmask-Datei nicht im ZIP gefunden.' }
+        Write-Host 'Walkmask installiert.' -ForegroundColor Green
+    }
+}
 function Start-Demo {
     param([string]$TargetScene = $Scene)
     Check-Godot
@@ -73,6 +87,6 @@ switch ($Action) {
     'perspective' { Start-Demo -TargetScene 'res://scenes/demo_perspective.tscn' }
     'prerendered' { Start-Demo -TargetScene 'res://scenes/demo_prerendered.tscn' }
     '3d' { Start-Demo -TargetScene 'res://scenes/demo_3d.tscn' }
-    'render' { Install-Rendered-Art; Start-Demo -TargetScene 'res://scenes/demo_rendered.tscn' }
+    'render' { Install-Rendered-Art; Install-Walkmask; Start-Demo -TargetScene 'res://scenes/demo_rendered.tscn' }
     'all' { Update-Project; Install-Assets; Start-Demo }
 }
