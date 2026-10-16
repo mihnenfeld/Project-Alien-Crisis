@@ -1,6 +1,9 @@
 extends "res://scripts/demo_outpost.gd"
 ## Experimental story encounter + CTB vertical slice. No third-party assets.
-const VISIBLE_ENEMY := Vector2(1042, 369)
+const PATROL_POINTS := [Vector2(1035, 375), Vector2(1132, 365), Vector2(1125, 545), Vector2(810, 555), Vector2(812, 394)]
+var enemy_position: Vector2 = PATROL_POINTS[0]
+var patrol_target: int = 1
+const PATROL_SPEED := 65.0
 var roaming_enemy_alive := true
 var story_encounter_done := false
 var battle_active := false
@@ -73,7 +76,13 @@ func _physics_process(delta: float) -> void:
         queue_redraw()
         return
     super._physics_process(delta)
-    if roaming_enemy_alive and player.distance_to(VISIBLE_ENEMY) < 66:
+    if roaming_enemy_alive:
+        var goal: Vector2 = PATROL_POINTS[patrol_target]
+        enemy_position = enemy_position.move_toward(goal, PATROL_SPEED * delta)
+        if enemy_position.distance_to(goal) < 3.0:
+            patrol_target = (patrol_target + 1) % PATROL_POINTS.size()
+        queue_redraw()
+    if roaming_enemy_alive and player.distance_to(enemy_position) < 66:
         _start_battle("visible")
 
 func _unhandled_key_input(event: InputEvent) -> void:
@@ -198,9 +207,9 @@ func _finish_battle(victory: bool) -> void:
 func _draw() -> void:
     super._draw()
     if roaming_enemy_alive:
-        draw_circle(VISIBLE_ENEMY + Vector2(4,8), 22, Color(0,0,0,0.45))
-        draw_circle(VISIBLE_ENEMY, 19, Color("#724c56"))
-        draw_circle(VISIBLE_ENEMY + Vector2(-8,-8), 8, Color("#b65e66"))
-        draw_circle(VISIBLE_ENEMY + Vector2(8,-8), 8, Color("#b65e66"))
-        draw_circle(VISIBLE_ENEMY + Vector2(0,0), 7, Color("#df9c75"))
-        draw_arc(VISIBLE_ENEMY,28,0,TAU,32,Color("#f27268"),2,true)
+        draw_circle(enemy_position + Vector2(4,8), 22, Color(0,0,0,0.45))
+        draw_circle(enemy_position, 19, Color("#724c56"))
+        draw_circle(enemy_position + Vector2(-8,-8), 8, Color("#b65e66"))
+        draw_circle(enemy_position + Vector2(8,-8), 8, Color("#b65e66"))
+        draw_circle(enemy_position + Vector2(0,0), 7, Color("#df9c75"))
+        draw_arc(enemy_position,28,0,TAU,32,Color("#f27268"),2,true)
