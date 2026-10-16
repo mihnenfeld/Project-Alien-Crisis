@@ -15,7 +15,7 @@ if (Test-Path -LiteralPath $preferred -PathType Leaf) {
         Sort-Object FullName)
     if ($found.Count -gt 0) { $Godot = $found[0].FullName }
 }
-$Scene = 'res://scenes/demo_outpost.tscn'
+$Scene = 'res://scenes/demo_ctb.tscn'
 function Check-Godot {
     if (!$Godot -or !(Test-Path -LiteralPath $Godot -PathType Leaf)) {
         throw "Godot nicht gefunden: $Godot"
@@ -41,7 +41,7 @@ function Update-Project {
 }
 function Start-Demo {
     Check-Godot
-    if (!(Test-Path (Join-Path $Root 'scenes\demo_outpost.tscn'))) {
+    if (!(Test-Path (Join-Path $Root 'scenes\demo_ctb.tscn'))) {
         throw 'Demo-Szene fehlt.'
     }
     & $Godot --path $Root $Scene
