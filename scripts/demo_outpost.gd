@@ -241,6 +241,9 @@ func _glow(pos:Vector2,color:Color,radius:int) -> void:
         draw_circle(pos,float(radius)*float(i)/5.0,Color(color.r,color.g,color.b,0.016))
 
 func _crate(rect:Rect2) -> void:
+    draw_rect(Rect2(rect.position + Vector2(10, 12), rect.size), Color(0, 0, 0, 0.32))
+    draw_rect(Rect2(rect.position - Vector2(0, 16), rect.size), Color("#465965"))
+    draw_colored_polygon(PackedVector2Array([Vector2(rect.position.x, rect.position.y - 16), Vector2(rect.end.x, rect.position.y - 16), Vector2(rect.end.x, rect.position.y), rect.position]), Color("#293b46"))
     draw_rect(rect,Color("#0b131b"))
     draw_rect(rect.grow(-4),Color("#52606b"))
     draw_rect(rect.grow(-9),Color("#303c46"))
