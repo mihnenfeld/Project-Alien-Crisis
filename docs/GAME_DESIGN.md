@@ -36,3 +36,15 @@ Approx. 20–30 hours for one playthrough, with replay value through branching o
 - **Scope safety:** retain the existing Godot scenes and prototype; new exploration/battle systems should be built incrementally and tested before changing the project's main scene.
 
 These decisions supersede the earlier experiments with real-time top-down combat or full 3D/FPS presentation. Inspiration does not authorize copying third-party game art, source code or protected assets.
+
+
+## Persistent locations and revisits (2026-10-16)
+
+- **Locations are persistent places, not disposable one-shot levels.** Raids may return to previously explored locations on later missions.
+- **Consequences persist:** defeated or surviving enemies, rescued or abandoned NPCs, unlocked or sealed doors, repaired or broken systems, depleted supplies and recovered information affect subsequent visits.
+- **New objectives in familiar places:** story developments or leads can direct the party back to an area, revealing new routes, hidden records, threats or contacts.
+- **Equipment gating without arbitrary walls:** some hazards, sealed sections and optional routes require better protection, tools, key information or companion expertise. The player can withdraw and return prepared.
+- **Backtracking should be meaningful:** world states and objectives change, rather than forcing repeated traversal of an identical map. Avoid respawning defeated enemies without an in-world explanation.
+- **Threats can persist between visits:** avoiding an alien leaves it present; sealing it in a sector changes available paths; fighting may cost valuable resources. A later visit may reveal how the situation evolved.
+- **Technical requirement:** assign stable location/entity IDs and store persistent world-state deltas separately from the base scene. On loading a location, apply those deltas; keep temporary encounter/session state distinct. Dedicated server remains authoritative in co-op.
+- **Prototype priority:** Outpost A-17 should retain meaningful gate, generator, encounter and recovery state when evacuated and revisited, while supporting a new objective on a later visit.
