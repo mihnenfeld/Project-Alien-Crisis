@@ -1,5 +1,5 @@
 param(
-    [ValidateSet('all','play','check','update')]
+    [ValidateSet('all','play','check','update','assets')]
     [string]$Action = 'all'
 )
 $ErrorActionPreference = 'Stop'
@@ -47,9 +47,13 @@ function Start-Demo {
     & $Godot --path $Root $Scene
     if ($LASTEXITCODE -ne 0) { throw "Godot beendete sich mit Fehlercode $LASTEXITCODE." }
 }
+function Install-Assets {
+    & (Join-Path $Root 'tools\install-assets.ps1') -ProjectRoot $Root
+}
 switch ($Action) {
     'check' { Check-Godot }
     'update' { Update-Project }
+    'assets' { Install-Assets }
     'play' { Start-Demo }
-    'all' { Update-Project; Start-Demo }
+    'all' { Update-Project; Install-Assets; Start-Demo }
 }
