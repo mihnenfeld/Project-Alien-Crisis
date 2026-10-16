@@ -39,7 +39,7 @@ func _ready() -> void:
     var ui := CanvasLayer.new()
     add_child(ui)
     _label(ui, Vector2(25,18), "ALIEN CRISIS  /  KOMMANDODECK  /  RENDER-DEMO 1.1", 22, Color("#e8f3f2"))
-    _label(ui, Vector2(28,52), "WASD LAUFEN  |  SHIFT SPRINTEN  |  E INTERAGIEREN  |  F1 MASKE  |  ESC BEENDEN", 14, Color("#adc3c7"))
+    _label(ui, Vector2(28,52), "WASD LAUFEN  |  SHIFT SPRINTEN  |  E INTERAGIEREN  |  F5 MASKE  |  ESC BEENDEN", 14, Color("#adc3c7"))
     status = _label(ui, Vector2(28,682), "TEST: GERENDERTE KULISSE, LAUFZONEN UND VORDERGRUNDVERDECKUNG", 14, Color("#7be3cf"))
     if not _walkable(player):
         push_error("Startpunkt liegt in einer gesperrten Laufzone: %s" % player)
@@ -120,8 +120,9 @@ func _physics_process(delta: float) -> void:
 func _unhandled_key_input(ev: InputEvent) -> void:
     if not ev is InputEventKey or not ev.pressed or ev.echo:
         return
-    if ev.keycode == KEY_F1:
+    if ev.keycode == KEY_F5 or ev.physical_keycode == KEY_F5:
         show_walkmask = not show_walkmask
+        status.text = ("F5 DEBUG AKTIV – GRUEN BEGEHBAR / ROT GESPERRT" if show_walkmask else "F5 DEBUG AUS") if debug_texture != null else "WALKMASK-DEBUG NICHT VERFUEGBAR: WALKMASK PRUEFEN"
         queue_redraw()
     elif ev.keycode == KEY_ESCAPE:
         get_tree().quit()
@@ -138,9 +139,10 @@ func _draw() -> void:
         draw_texture_rect(bg,Rect2(Vector2.ZERO,Vector2(1280,720)),false)
     else:
         draw_rect(Rect2(0,0,1280,720),Color("#0a151c"))
-    if show_walkmask and debug_texture != null:
-        draw_texture(debug_texture,Vector2.ZERO)
-        draw_circle(player,foot_radius+4,Color.YELLOW)
+    if show_walkmask:
+        if debug_texture != null:
+            draw_texture_rect(debug_texture,Rect2(Vector2.ZERO,Vector2(1280,720)),false)
+        draw_circle(player,foot_radius+5,Color.YELLOW)
     _player()
     # Front planning desk occludes the character only when behind its depth edge.
     if fg != null and player.y < 590:
