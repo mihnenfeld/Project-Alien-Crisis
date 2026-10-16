@@ -2,11 +2,16 @@ extends Node3D
 ## Reusable room geometry. Shared coordinates are metres; rendering and collisions agree.
 @export var room_size := Vector2(9.0, 7.0)
 @export var room_title := "COMMAND DECK"
+@export var passage_right := false
 var obstacles: Array[Rect2] = []
 func _ready() -> void:
     _cube("Floor",Vector3(4.5,-0.11,3.5),Vector3(9,0.2,7),Color("#34434d"))
     _cube("Rear bulkhead",Vector3(4.5,1.8,0),Vector3(9,3.6,0.25),Color("#475965"))
-    _cube("Right bulkhead",Vector3(9,1.8,3.5),Vector3(0.25,3.6,7),Color("#2d404a"))
+    if passage_right:
+        _cube("Right bulkhead north",Vector3(9,1.8,2.0),Vector3(0.25,3.6,4.0),Color("#2d404a"))
+        _cube("Right bulkhead south",Vector3(9,1.8,6.5),Vector3(0.25,3.6,1.0),Color("#2d404a"))
+    else:
+        _cube("Right bulkhead",Vector3(9,1.8,3.5),Vector3(0.25,3.6,7),Color("#2d404a"))
     for i in range(9):
         _cube("Floor seam",Vector3(i+0.5,0.011,3.5),Vector3(0.02,0.02,6.85),Color("#69818b"))
     for i in range(7):
