@@ -21,6 +21,8 @@ func _unhandled_key_input(event: InputEvent) -> void:
 
 func _draw() -> void:
     super._draw()
+    draw_circle(EVAC_POINT + Vector2(6, 8), 46, Color(0, 0, 0, 0.42))
+    _surface("evac", Rect2(EVAC_POINT - Vector2(48, 48), Vector2(96, 96)), 0.90)
     draw_circle(EVAC_POINT, 42, Color(0.10, 0.72, 0.56, 0.17))
     draw_arc(EVAC_POINT, 31, 0, TAU, 40, Color("#77f4c7"), 3, true)
     draw_line(EVAC_POINT + Vector2(-19, 0), EVAC_POINT + Vector2(19, 0), Color("#77f4c7"), 2)
