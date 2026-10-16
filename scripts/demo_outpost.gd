@@ -9,6 +9,8 @@ const BLOCKS := [
     Rect2(282,240,130,56), Rect2(982,462,124,55)
 ]
 const SPEED := 230.0
+const SPRINT_MULTIPLIER := 1.65
+var ambience_time: float = 0.0
 var player := Vector2(220, 447)
 var facing := 0.0
 var footsteps := 0.0
@@ -46,13 +48,15 @@ func _label(pos: Vector2, content: String, size: int, color: Color) -> Label:
 
 func _physics_process(delta: float) -> void:
     var movement := Input.get_vector("move_left", "move_right", "move_up", "move_down")
-    var next := player + movement * SPEED * delta
+    var running: bool = Input.is_key_pressed(KEY_SHIFT)
+    var next := player + movement * SPEED * (SPRINT_MULTIPLIER if running else 1.0) * delta
     if not _blocked(Vector2(next.x, player.y)):
         player.x = next.x
     if not _blocked(Vector2(player.x, next.y)):
         player.y = next.y
     if movement.length() > 0.01:
-        footsteps += delta * 11.0
+        footsteps += delta * (18.0 if running else 11.0)
+    ambience_time += delta
     facing = (get_global_mouse_position() - player).angle()
     queue_redraw()
 
@@ -147,6 +151,7 @@ func _draw() -> void:
         draw_line(Vector2(80,y),Vector2(1200,y),Color(0.23,0.40,0.45,0.11),1)
     _surface("floor", Rect2(80, 122, 644, 516), 0.49)
     _surface("floor", Rect2(748, 122, 452, 516), 0.49)
+    _decorative_details()
     # Hazard stripes and floor markings.
     draw_rect(Rect2(685,314,34,100), Color("#b38330"))
     for y in range(314,415,16):
@@ -200,6 +205,36 @@ func _draw() -> void:
     for target in [generator_rect.get_center(),console_rect.get_center(),access_panel_rect.get_center(),gate_rect.get_center()]:
         if player.distance_to(target)<110:
             draw_arc(target,31,0,TAU,40,Color("#7af8d5"),2,true)
+
+func _decorative_details() -> void:
+    # Bolts, grates, cable lines and slowly pulsing warning beacon.
+    for x in range(130, 1150, 145):
+        for y in range(182, 610, 130):
+            draw_circle(Vector2(x, y), 2.5, Color("#61737d"))
+            draw_line(Vector2(x - 17, y + 35), Vector2(x + 20, y + 35), Color("#101923"), 3)
+    for i in range(6):
+        var px: float = 152.0 + i * 169.0
+        draw_rect(Rect2(px, 611, 56, 9), Color("#101a23"))
+        for j in range(4):
+            draw_line(Vector2(px + 7.0 + j * 13.0, 612), Vector2(px + 7.0 + j * 13.0, 619), Color("#70828a"), 2)
+    var pulse: float = 0.38 + 0.25 * sin(ambience_time * 4.0)
+    draw_circle(Vector2(716, 306), 20, Color(0.96, 0.28, 0.15, pulse * 0.20))
+    draw_circle(Vector2(716, 306), 5, Color(1.0, 0.29, 0.16, pulse + 0.15))
+
+func _raised_prop(area: Rect2, height_px: float, accent: Color) -> void:
+    # The rear face is displaced upward while all collision remains on the original footprint.
+    var top := Rect2(area.position - Vector2(0.0, height_px), area.size)
+    draw_rect(Rect2(area.position + Vector2(10, 8), area.size), Color(0, 0, 0, 0.28))
+    draw_colored_polygon(PackedVector2Array([
+        top.position + Vector2(top.size.x, 0),
+        top.end,
+        area.end,
+        area.position + Vector2(area.size.x, 0)
+    ]), Color("#182731"))
+    draw_rect(top, Color("#364b57"))
+    draw_rect(top.grow(-6), Color("#172d38"))
+    draw_rect(Rect2(top.position + Vector2(9, 8), Vector2(top.size.x - 18, 5)), accent)
+    draw_line(top.position, top.position + Vector2(top.size.x, 0), Color("#96aeb3"), 2)
 
 func _glow(pos:Vector2,color:Color,radius:int) -> void:
     for i in range(5,0,-1):
