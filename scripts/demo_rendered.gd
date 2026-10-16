@@ -6,7 +6,7 @@ const PLAYER_START := Vector2(975, 475)
 var walkmask: Image
 var debug_texture: Texture2D
 var show_walkmask := false
-var foot_radius := 5.0
+var foot_radius := 2.0
 var player := PLAYER_START
 var look_direction := Vector2(1, 0)
 var stride := 0.0
@@ -38,7 +38,7 @@ func _ready() -> void:
     RenderingServer.set_default_clear_color(Color("#050a0e"))
     var ui := CanvasLayer.new()
     add_child(ui)
-    _label(ui, Vector2(25,18), "ALIEN CRISIS  /  KOMMANDODECK  /  RENDER-DEMO 1.1", 22, Color("#e8f3f2"))
+    _label(ui, Vector2(25,18), "ALIEN CRISIS  /  KOMMANDODECK  /  RENDER-DEMO 1.2", 22, Color("#e8f3f2"))
     _label(ui, Vector2(28,52), "WASD LAUFEN  |  SHIFT SPRINTEN  |  E INTERAGIEREN  |  F5 MASKE  |  ESC BEENDEN", 14, Color("#adc3c7"))
     status = _label(ui, Vector2(28,682), "TEST: GERENDERTE KULISSE, LAUFZONEN UND VORDERGRUNDVERDECKUNG", 14, Color("#7be3cf"))
     if not _walkable(player):
