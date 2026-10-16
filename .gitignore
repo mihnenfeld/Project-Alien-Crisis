@@ -11,3 +11,6 @@ Thumbs.db
 
 # Builds
 builds/
+
+# Local generated/imported art packs
+assets/materials/pack01/
