@@ -14,8 +14,18 @@ var bg: Texture2D
 var fg: Texture2D
 var status: Label
 var elapsed := 0.0
+var soldier_frames: Dictionary = {}
+var soldier_moving := false
 
 func _ready() -> void:
+    for direction in ["front", "left", "right", "back"]:
+        var frames: Array[Texture2D] = []
+        for i in range(6):
+            var path := "res://assets/characters/soldier/%s_%02d.png" % [direction, i]
+            var texture := _load_png(path)
+            if texture != null:
+                frames.append(texture)
+        soldier_frames[direction] = frames
     bg = _load_png("res://assets/backgrounds/commanddeck_render_bg.png")
     fg = _load_png("res://assets/backgrounds/commanddeck_render_fg.png")
     var path := "res://assets/backgrounds/commanddeck_walkmask.png"
@@ -38,7 +48,7 @@ func _ready() -> void:
     RenderingServer.set_default_clear_color(Color("#050a0e"))
     var ui := CanvasLayer.new()
     add_child(ui)
-    _label(ui, Vector2(25,18), "ALIEN CRISIS  /  KOMMANDODECK  /  RENDER-DEMO 1.3", 22, Color("#e8f3f2"))
+    _label(ui, Vector2(25,18), "ALIEN CRISIS  /  KOMMANDODECK  /  RENDER-DEMO 1.4", 22, Color("#e8f3f2"))
     _label(ui, Vector2(28,52), "WASD LAUFEN  |  SHIFT SPRINTEN  |  E INTERAGIEREN  |  F5 MASKE  |  ESC BEENDEN", 14, Color("#adc3c7"))
     status = _label(ui, Vector2(28,682), "TEST: GERENDERTE KULISSE, LAUFZONEN UND VORDERGRUNDVERDECKUNG", 14, Color("#7be3cf"))
     if not _walkable(player):
@@ -121,7 +131,7 @@ func _move_with_slide(displacement: Vector2) -> void:
         var moved := false
         for distance in [2.0, 4.0, 6.0]:
             for sign_value in [1.0, -1.0]:
-                var push := normal * distance * sign_value
+                var push: Vector2 = normal * float(distance) * float(sign_value)
                 if _walkable(player + push) and _walkable(player + push + step):
                     player += push + step
                     moved = true
@@ -146,7 +156,8 @@ func _physics_process(delta: float) -> void:
     var offset := axes * speed * delta
     # Screen-space movement with forgiving collision and smooth gliding.
     _move_with_slide(offset)
-    if axes.length_squared() > 0.01:
+    soldier_moving = axes.length_squared() > 0.01
+    if soldier_moving:
         look_direction = axes.normalized()
         stride += delta * (16.0 if Input.is_key_pressed(KEY_SHIFT) else 10.0)
     queue_redraw()
@@ -184,6 +195,17 @@ func _draw() -> void:
 
 func _player() -> void:
     var p := player
+    var direction := "front"
+    if absf(look_direction.x) > absf(look_direction.y) * 1.25:
+        direction = "right" if look_direction.x > 0.0 else "left"
+    elif look_direction.y < 0.0:
+        direction = "back"
+    var frames: Array[Texture2D] = soldier_frames.get(direction, [])
+    if frames.size() > 0:
+        var index := int(stride * 0.65) % frames.size() if soldier_moving else 0
+        var tex: Texture2D = frames[index]
+        draw_texture_rect(tex, Rect2(p.x - 41, p.y - 91, 82, 92), false)
+        return
     draw_set_transform(p,0,Vector2(1.0,0.35))
     draw_circle(Vector2.ZERO,20.0,Color(0,0,0,0.55))
     draw_set_transform(Vector2.ZERO,0,Vector2.ONE)
