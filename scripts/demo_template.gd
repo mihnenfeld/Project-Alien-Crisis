@@ -172,14 +172,17 @@ func _bake_camera_views() -> void:
     var camera_capture := Camera3D.new()
     camera_capture.fov = camera.fov
     capture.add_child(camera_capture)
+    camera_capture.current = true
     await get_tree().process_frame
     for slot in range(3):
         camera_capture.global_transform = _camera_pose(slot)
         await RenderingServer.frame_post_draw
         await RenderingServer.frame_post_draw
         var image := capture.get_texture().get_image()
-        if image != null and not image.is_empty():
+        if image != null and not image.is_empty() and _has_rendered_content(image):
             baked_views[slot] = ImageTexture.create_from_image(image)
+        else:
+            push_warning("Kamera %d: Capture leer oder schwarz, F6 bleibt deaktiviert." % (slot + 1))
     capture.queue_free()
     actor.visible = original_visibility
     baking = false
@@ -187,8 +190,21 @@ func _bake_camera_views() -> void:
     if render_mode:
         _show_baked_view()
 
+func _has_rendered_content(image: Image) -> bool:
+    var different := 0
+    var first := image.get_pixel(50, 50)
+    for yy in range(80, image.get_height()-80, 95):
+        for xx in range(80, image.get_width()-80, 95):
+            var pixel := image.get_pixel(xx, yy)
+            if absf(pixel.r-first.r) + absf(pixel.g-first.g) + absf(pixel.b-first.b) > 0.14:
+                different += 1
+                if different >= 3:
+                    return true
+    return false
+
 func _show_baked_view() -> void:
     if backdrop == null or not baked_views.has(camera_slot):
+        backdrop.visible = false
         return
     var tex: Texture2D = baked_views[camera_slot]
     var mat := StandardMaterial3D.new()
