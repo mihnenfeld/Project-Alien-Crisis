@@ -66,6 +66,8 @@ func _blocked(test: Vector2) -> bool:
     return false
 
 func _unhandled_key_input(event: InputEvent) -> void:
+    if not event is InputEventKey:
+        return
     if not event.pressed or event.echo:
         return
     if event.keycode == KEY_ESCAPE:
