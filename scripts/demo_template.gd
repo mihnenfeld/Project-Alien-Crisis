@@ -19,6 +19,7 @@ var baking := false
 var view_label: Label
 var capture_preview: TextureRect
 var preview_visible := false
+const EXPORT_DIR := "user://prerenders/commanddeck/"
 var concept_mode := false
 var concept_texture: Texture2D
 const CONCEPT_PATH := "res://assets/backgrounds/commanddeck_concept.png"
@@ -51,7 +52,7 @@ func _ready() -> void:
     var ui := CanvasLayer.new()
     add_child(ui)
     heading = _label(ui,Vector2(26,21),"ALIEN CRISIS / KOMMANDODECK 2.4",24)
-    _label(ui,Vector2(27,56),"WASD / SHIFT | KAMERA AUTOMATISCH | F6: RENDER/3D | F7: VORSCHAU | F8: KONZEPT | F9: REFERENZ | ESC: ENDE",15)
+    _label(ui,Vector2(27,56),"WASD / SHIFT | KAMERA AUTOMATISCH | F6: RENDER/3D | F7: VORSCHAU | F8: KONZEPT | F9: REFERENZ | F10: ALLE EXPORTIEREN | ESC: ENDE",15)
     message = _label(ui,Vector2(28,682),"BEIDE RAEUME BESTEHEN DAUERHAFT. DURCHGANG RECHTS HINTEN.",15)
     view_label = _label(ui,Vector2(27,87),"F6: RENDERBILD EIN/AUS  |  ERSTER TEST: 3D-SZENE ALS EXAKTE KULISSE",14)
     capture_preview = TextureRect.new()
@@ -64,7 +65,9 @@ func _ready() -> void:
     concept_texture = _load_concept()
     _update_camera(true)
     _prepare_backdrop()
-    _bake_camera_views.call_deferred()
+    _load_render_exports()
+    if baked_views.is_empty():
+        _bake_camera_views.call_deferred()
 
 func _label(root: Node,pos: Vector2,value: String,size: int) -> Label:
     var label_node := Label.new()
@@ -199,6 +202,7 @@ func _bake_camera_views() -> void:
         var snapshot := get_viewport().get_texture().get_image()
         if snapshot != null and not snapshot.is_empty() and _has_rendered_content(snapshot):
             baked_views[slot] = ImageTexture.create_from_image(snapshot)
+            _save_export(snapshot, slot)
         else:
             push_warning("Kamera %d: Hauptviewport-Capture leer." % (slot + 1))
     camera.global_transform = original_pose
@@ -209,6 +213,26 @@ func _bake_camera_views() -> void:
     _update_preview()
     if render_mode:
         _show_baked_view()
+
+func _save_export(img: Image, slot: int) -> void:
+    DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(EXPORT_DIR))
+    var target := EXPORT_DIR + "camera_%02d_bg.png" % (slot + 1)
+    var result := img.save_png(target)
+    if result != OK:
+        push_warning("Render export failed: " + error_string(result))
+    else:
+        print("Render saved: " + ProjectSettings.globalize_path(target))
+
+func _load_render_exports() -> void:
+    for slot in range(3):
+        var path := EXPORT_DIR + "camera_%02d_bg.png" % (slot + 1)
+        if not FileAccess.file_exists(path):
+            continue
+        var img := Image.new()
+        if img.load(path) == OK and _has_rendered_content(img):
+            baked_views[slot] = ImageTexture.create_from_image(img)
+    if not baked_views.is_empty():
+        print("Loaded %d cached camera renders from %s" % [baked_views.size(), ProjectSettings.globalize_path(EXPORT_DIR)])
 
 func _update_preview() -> void:
     if capture_preview == null:
@@ -352,6 +376,8 @@ func _unhandled_key_input(event: InputEvent) -> void:
         _apply_concept()
     elif event.keycode == KEY_F9:
         _export_camera_reference()
+    elif event.keycode == KEY_F10:
+        _bake_camera_views.call_deferred()
     elif event.keycode == KEY_F6:
         if concept_mode:
             concept_mode = false
