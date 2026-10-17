@@ -124,8 +124,8 @@ switch ($Action) {
         }
         Check-Godot
         Write-Host 'Godot: Neue glTF-Modelle zuerst in den Import-Cache uebernehmen...' -ForegroundColor Cyan
-        & $Godot --headless --path $Root --editor --import
-        if ($LASTEXITCODE -ne 0) { throw "Godot-Assetimport fehlgeschlagen ($LASTEXITCODE)." }
+        $importJob = Start-Process -FilePath $Godot -ArgumentList @('--headless', '--path', ('"' + $Root + '"'), '--editor', '--import') -Wait -PassThru -NoNewWindow
+        if ($importJob.ExitCode -ne 0) { throw "Godot-Assetimport fehlgeschlagen ($($importJob.ExitCode))." }
         Start-Demo -TargetScene 'res://scenes/demo_asset_room.tscn'
     }
     'render' { Install-Rendered-Art; Install-Walkmask; Install-Soldier; Start-Demo -TargetScene 'res://scenes/demo_rendered.tscn' }
