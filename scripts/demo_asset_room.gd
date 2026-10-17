@@ -58,7 +58,7 @@ func _lamp(at: Vector3, tint: Color, energy: float, reach: float) -> void:
     add_child(node)
 
 func _asset(folder: String, name: String, at: Vector3, target: Vector3, angle: float = 0.0) -> void:
-    var file := PACK + name + ".gltf"
+    var file := PACK + folder + "/" + name + ".gltf"
     if not ResourceLoader.exists(file):
         push_warning("Asset fehlt: " + file)
         return
