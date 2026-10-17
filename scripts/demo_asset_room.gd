@@ -1,7 +1,7 @@
 extends Node3D
 ## PAC asset-library test room. No primitive mesh stand-ins: all visible
 ## environment meshes are from the imported Quaternius glTF pack.
-const CHARACTER = preload("res://scripts/ac_character.gd")
+const CHARACTER = preload("res://scripts/ac_asset_character.gd")
 const PACK := "res://assets/library/packs/quaternius_scifi_standard/glTF/"
 var actor: CharacterBody3D
 var hud: Label
