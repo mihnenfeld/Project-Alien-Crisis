@@ -117,6 +117,7 @@ switch ($Action) {
     'prerendered' { Start-Demo -TargetScene 'res://scenes/demo_prerendered.tscn' }
     '3d' { Start-Demo -TargetScene 'res://scenes/demo_3d.tscn' }
     'template' { Install-Concept; Start-Demo -TargetScene 'res://scenes/demo_template.tscn' }
+    'assetroom' { Start-Demo -TargetScene 'res://scenes/demo_asset_room.tscn' }
     'render' { Install-Rendered-Art; Install-Walkmask; Install-Soldier; Start-Demo -TargetScene 'res://scenes/demo_rendered.tscn' }
     'all' { Update-Project; Install-Assets; Start-Demo }
 }
