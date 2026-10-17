@@ -111,18 +111,22 @@ func _assemble() -> void:
     for ix in range(5):
         for iz in range(4):
             _asset("Platforms", "Platform_DarkPlates", Vector3(0.9 + ix * 1.8, -0.12, 0.875 + iz * 1.75), Vector3(1.8, 0.16, 1.75))
+    # Quaternius wall segments run along their LOCAL Z axis, not local X.
+    # Rear wall: rotate 90 degrees and give it length on local Z.
+    # Side walls: leave unrotated. Prefer straight, flat wall panels;
+    # Astra's projecting braces looked like leaning broken plates.
     for i in range(5):
-        _asset("Walls", "WallAstra_Straight", Vector3(0.9 + float(i) * 1.8, 0, 0.10), Vector3(1.8, 3.4, 0.24))
-        _asset("Walls", "TopCables_Straight", Vector3(0.9 + float(i) * 1.8, 2.6, 0.35), Vector3(1.8, 0.72, 0.23))
+        var x := 0.9 + float(i) * 1.8
+        _asset("Walls", "WallAstra_Straight_Flat", Vector3(x, 0, 0.12), Vector3(0.20, 2.75, 1.8), 90.0)
+        _asset("Walls", "TopCables_Straight", Vector3(x, 2.65, 0.30), Vector3(0.28, 0.55, 1.8), 90.0)
     for i in range(4):
-        _asset("Walls", "WallBand_Straight", Vector3(0.1, 0, 0.875 + float(i)*1.75), Vector3(1.75, 3.4, 0.24), 90.0)
-        _asset("Walls", "WallBand_Straight", Vector3(8.9, 0, 0.875 + float(i)*1.75), Vector3(1.75, 3.4, 0.24), 90.0)
-    # Camera-facing wall (south edge, z=7) intentionally omitted.
-    # Dino Crisis-style cinematic cutaway: real side/rear walls remain,
-    # but the camera can see the whole room and the front of the character.
-    # Never place a solid mesh between the active fixed camera and the player.
-    for x in [0.6, 4.5, 8.4]:
-        _asset("Columns", "Column_MetalSupport", Vector3(x, 0, 0.40), Vector3(0.35, 3.3, 0.36))
+        var z := 0.875 + float(i) * 1.75
+        _asset("Walls", "WallBand_Straight", Vector3(0.12, 0, z), Vector3(0.20, 2.75, 1.75))
+        _asset("Walls", "WallBand_Straight", Vector3(8.88, 0, z), Vector3(0.20, 2.75, 1.75), 180.0)
+    # Camera-facing fourth wall intentionally omitted, as with a
+    # classic survival-horror cutaway shot. The other three sides join.
+    for x in [0.25, 4.5, 8.75]:
+        _asset("Columns", "Column_MetalSupport", Vector3(x, 0, 0.25), Vector3(0.25, 2.8, 0.25))
     # Real computer, containers, service fan, lamps, and cable models.
     _asset("Props", "Prop_Computer", Vector3(2.1, 0, 1.45), Vector3(1.45, 1.45, 0.86))
     _asset("Props", "Prop_Computer", Vector3(6.65, 0, 1.45), Vector3(1.45, 1.45, 0.86))
@@ -158,11 +162,11 @@ func _set_camera(slot: int) -> void:
     camera_slot = slot
     if slot == 0:
         # South/front wall removed: soldier is viewed from the front.
-        camera.position = Vector3(4.5, 4.85, 13.2)
+        camera.position = Vector3(4.5, 4.1, 12.3)
         camera.look_at(Vector3(4.5, 1.05, 3.3), Vector3.UP)
     else:
         # Second fixed Dino Crisis-style diagonal establishing shot.
-        camera.position = Vector3(7.9, 4.8, 12.1)
+        camera.position = Vector3(7.3, 4.5, 11.7)
         camera.look_at(Vector3(4.6, 1.05, 2.65), Vector3.UP)
 
 func _can_stand(point: Vector2, radius: float = 0.19) -> bool:
