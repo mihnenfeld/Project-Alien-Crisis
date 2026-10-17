@@ -119,7 +119,7 @@ switch ($Action) {
     'template' { Install-Concept; Start-Demo -TargetScene 'res://scenes/demo_template.tscn' }
     'assetroom' {
         $Pack = Join-Path $Root 'assets\library\packs\quaternius_scifi_standard\glTF'
-        if (!(Test-Path -LiteralPath (Join-Path $Pack 'Platform_DarkPlates.gltf'))) {
+        if (!(Test-Path -LiteralPath (Join-Path $Pack 'Platforms\Platform_DarkPlates.gltf'))) {
             throw "PAC AssetLib fehlt. Zuerst .\tools\install-pac-assetlib.ps1 ausfuehren."
         }
         Check-Godot
