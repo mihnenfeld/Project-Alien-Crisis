@@ -1,5 +1,5 @@
 param(
-    [ValidateSet('all','play','check','update','assets','perspective','prerendered','3d','render','template')]
+    [ValidateSet('all','play','check','update','assets','perspective','prerendered','3d','render','template','assetroom')]
     [string]$Action = 'all'
 )
 $ErrorActionPreference = 'Stop'
