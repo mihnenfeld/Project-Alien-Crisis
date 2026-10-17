@@ -83,18 +83,16 @@ function Install-Soldier {
     }
 }
 function Install-Concept {
-    $Zip = Join-Path (Join-Path $env:USERPROFILE 'Downloads') 'Alien_Crisis_Concept_Camera01.zip'
+    $Zip = Join-Path (Join-Path $env:USERPROFILE 'Downloads') 'Alien_Crisis_Concept_Camera01_v2.zip'
     $Dest = Join-Path $Root 'assets\backgrounds'
     $Image = Join-Path $Dest 'commanddeck_concept.png'
-    if (!(Test-Path -LiteralPath $Image)) {
-        if (!(Test-Path -LiteralPath $Zip)) {
-            Write-Warning "Optionales Konzeptgrafikpaket fehlt. F8 nicht verfuegbar: $Zip"
-            return
-        }
+    if (Test-Path -LiteralPath $Zip) {
         New-Item -ItemType Directory -Force -Path $Dest | Out-Null
         Expand-Archive -LiteralPath $Zip -DestinationPath $Dest -Force
         if (!(Test-Path -LiteralPath $Image)) { throw 'Konzeptbild fehlt nach ZIP-Import.' }
-        Write-Host 'Konzept-Kulisse fuer Kamera 1 installiert.' -ForegroundColor Green
+        Write-Host 'Neues Konzeptbild fuer Kamera 1 installiert.' -ForegroundColor Green
+    } elseif (!(Test-Path -LiteralPath $Image)) {
+        Write-Warning "Optionales Konzeptgrafikpaket fehlt: $Zip"
     }
 }
 function Start-Demo {
