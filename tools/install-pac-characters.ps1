@@ -24,6 +24,14 @@ try {
    $InputFile = $Entry.Open()
    try { $OutputFile = [IO.File]::Create($Destination); try { $InputFile.CopyTo($OutputFile) } finally { $OutputFile.Dispose() } } finally { $InputFile.Dispose() }
  }
+ # The supplied Godot glTF references two incorrectly suffixed normal-map
+ # filenames, though the actual PNGs have conventional names.
+ foreach ($Name in @('T_Eye_Normal', 'T_Hair_1_Normal')) {
+     $Original = Join-Path $Target ($Name + '.png')
+     $Alias = Join-Path $Target ($Name + '_png.png')
+     if (!(Test-Path -LiteralPath $Original)) { throw "Textur fehlt: $Original" }
+     Copy-Item -LiteralPath $Original -Destination $Alias -Force
+ }
  [IO.File]::WriteAllText((Join-Path $Target 'License_Standard.txt'), $LicenseText)
  Write-Host ("PAC CharacterKit: {0} Modelldateien und Texturen installiert." -f $Sources.Count) -ForegroundColor Green
  Write-Host "Ziel: $Target"
