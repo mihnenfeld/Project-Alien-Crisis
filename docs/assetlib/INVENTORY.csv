@@ -1,0 +1,11 @@
+id,category,status,source_url,license,format,local_path,notes
+arch_wall_panel_a,architecture,candidate,https://quaternius.com/packs/modularscifimegakit.html,CC0,,,Choose compatible module
+arch_floor_panel_a,architecture,candidate,https://quaternius.com/packs/modularscifimegakit.html,CC0,,,Choose compatible floor
+arch_ceiling_panel_a,architecture,candidate,https://quaternius.com/packs/modularscifimegakit.html,CC0,,,Choose compatible ceiling
+arch_door_security_slide_a,architecture,candidate,https://quaternius.com/packs/modularscifimegakit.html,CC0,,,Needs physically credible design
+mach_generator_medium_a,machinery,wishlist,,,,,Locate realistic textured generator separately
+mach_console_wall_a,machinery,candidate,https://quaternius.com/packs/modularscifimegakit.html,CC0,,,Inspect free model subset
+mach_server_rack_a,machinery,wishlist,,,,,Locate realistic textured server rack
+infra_pipe_straight_a,infrastructure,wishlist,,,,,Find scalable pipe kit
+prop_crate_large_a,props,candidate,https://quaternius.com/packs/modularscifimegakit.html,CC0,,,Inspect material style
+light_emergency_red_a,lighting,wishlist,,,,,Find textured housing; Godot light node added in wrapper
