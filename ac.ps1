@@ -117,7 +117,17 @@ switch ($Action) {
     'prerendered' { Start-Demo -TargetScene 'res://scenes/demo_prerendered.tscn' }
     '3d' { Start-Demo -TargetScene 'res://scenes/demo_3d.tscn' }
     'template' { Install-Concept; Start-Demo -TargetScene 'res://scenes/demo_template.tscn' }
-    'assetroom' { Start-Demo -TargetScene 'res://scenes/demo_asset_room.tscn' }
+    'assetroom' {
+        $Pack = Join-Path $Root 'assets\library\packs\quaternius_scifi_standard\glTF'
+        if (!(Test-Path -LiteralPath (Join-Path $Pack 'Platforms\Platform_DarkPlates.gltf'))) {
+            throw "PAC AssetLib fehlt. Zuerst .\tools\install-pac-assetlib.ps1 ausfuehren."
+        }
+        Check-Godot
+        Write-Host 'Godot: Neue glTF-Modelle zuerst in den Import-Cache uebernehmen...' -ForegroundColor Cyan
+        & $Godot --headless --path $Root --editor --import
+        if ($LASTEXITCODE -ne 0) { throw "Godot-Assetimport fehlgeschlagen ($LASTEXITCODE)." }
+        Start-Demo -TargetScene 'res://scenes/demo_asset_room.tscn'
+    }
     'render' { Install-Rendered-Art; Install-Walkmask; Install-Soldier; Start-Demo -TargetScene 'res://scenes/demo_rendered.tscn' }
     'all' { Update-Project; Install-Assets; Start-Demo }
 }
