@@ -7,6 +7,8 @@ var actor: CharacterBody3D
 var hud: Label
 var obstacles: Array[Rect2] = []
 var built := 0
+var camera: Camera3D
+var camera_slot := -1
 
 func _ready() -> void:
     _environment()
@@ -14,14 +16,14 @@ func _ready() -> void:
     actor = CharacterBody3D.new()
     actor.set_script(CHARACTER)
     add_child(actor)
-    actor.position = Vector3(4.2, 0, 4.7)
+    actor.position = Vector3(4.25, 0, 4.8)
+    actor.rotation.y = 0.0
     actor.set("can_stand", Callable(self, "_can_stand"))
-    var cam := Camera3D.new()
-    add_child(cam)
-    cam.fov = 48.0
-    cam.position = Vector3(11.6, 8.4, 12.6)
-    cam.look_at(Vector3(4.5, 0.8, 3.5))
-    cam.current = true
+    camera = Camera3D.new()
+    add_child(camera)
+    camera.fov = 45.0
+    camera.current = true
+    _set_camera(0)
     var ui := CanvasLayer.new()
     add_child(ui)
     hud = Label.new()
@@ -33,7 +35,7 @@ func _ready() -> void:
         hud.text = "PAC ASSETLIB: MODELLE FEHLEN | Installiere MegaKit mit tools/install-pac-assetlib.ps1"
         push_error("PAC AssetLib package missing: " + PACK)
     else:
-        hud.text = "PAC / ASSETLIB ROOM 0.1   |   %d ECHTE 3D-MODELLE   |   WASD / SHIFT / ESC" % built
+        hud.text = "PAC / KOMMANDODECK   |   %d 3D-BAUTEILE   |   WASD / SHIFT / ESC" % built
 
 func _environment() -> void:
     var world := WorldEnvironment.new()
@@ -115,8 +117,10 @@ func _assemble() -> void:
     for i in range(4):
         _asset("Walls", "WallBand_Straight", Vector3(0.1, 0, 0.875 + float(i)*1.75), Vector3(1.75, 3.4, 0.24), 90.0)
         _asset("Walls", "WallBand_Straight", Vector3(8.9, 0, 0.875 + float(i)*1.75), Vector3(1.75, 3.4, 0.24), 90.0)
-    for i in range(5):
-        _asset("Walls", "WallAstra_Straight_Flat", Vector3(0.9 + float(i)*1.8, 0, 6.9), Vector3(1.8, 3.4, 0.24), 180.0)
+    # Camera-facing wall (south edge, z=7) intentionally omitted.
+    # Dino Crisis-style cinematic cutaway: real side/rear walls remain,
+    # but the camera can see the whole room and the front of the character.
+    # Never place a solid mesh between the active fixed camera and the player.
     for x in [0.6, 4.5, 8.4]:
         _asset("Columns", "Column_MetalSupport", Vector3(x, 0, 0.40), Vector3(0.35, 3.3, 0.36))
     # Real computer, containers, service fan, lamps, and cable models.
@@ -130,6 +134,7 @@ func _assemble() -> void:
     for x in [1.8, 4.5, 7.2]:
         _asset("Props", "Prop_Light_Wide", Vector3(x, 2.85, 1.5), Vector3(1.05, 0.18, 0.35))
     _asset("Props", "Prop_Light_Small", Vector3(8.45, 2.25, 6.1), Vector3(0.35, 0.35, 0.35))
+    # Rear wall and both side walls are the continuous architectural shell.
     # Gameplay blockers remain simple and invisible; visual models are true assets.
     obstacles = [
         Rect2(1.25, 0.9, 1.65, 1.2),
@@ -138,6 +143,27 @@ func _assemble() -> void:
         Rect2(7.0, 4.8, 1.35, 1.45),
         Rect2(7.2, 3.55, 1.0, 1.25)
     ]
+
+
+func _process(_delta: float) -> void:
+    if actor == null or camera == null:
+        return
+    # Two stable camera positions (no follow camera). The player remains
+    # a single persistent actor; switch only when entering the rear zone.
+    var desired := 1 if actor.position.z < 2.55 else 0
+    if desired != camera_slot:
+        _set_camera(desired)
+
+func _set_camera(slot: int) -> void:
+    camera_slot = slot
+    if slot == 0:
+        # South/front wall removed: soldier is viewed from the front.
+        camera.position = Vector3(4.5, 4.85, 13.2)
+        camera.look_at(Vector3(4.5, 1.05, 3.3), Vector3.UP)
+    else:
+        # Second fixed Dino Crisis-style diagonal establishing shot.
+        camera.position = Vector3(7.9, 4.8, 12.1)
+        camera.look_at(Vector3(4.6, 1.05, 2.65), Vector3.UP)
 
 func _can_stand(point: Vector2, radius: float = 0.19) -> bool:
     if point.x < radius + 0.2 or point.x > 8.8 - radius or point.y < 0.35 + radius or point.y > 6.8 - radius:
